@@ -166,7 +166,17 @@ class ClinicalStationApp {
       }
     } catch (err) {
       console.warn("[CAMERA] Access not granted or camera busy:", err);
-      if (overlay) overlay.style.display = "flex";
+      if (overlay) {
+        overlay.style.display = "flex";
+        const promptText = overlay.querySelector(".standby-prompt");
+        if (promptText) {
+          if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+            promptText.textContent = "TRÌNH DUYỆT CHẶN CAM QUA HTTP LAN. HÃY DÙNG LOCALHOST HOẶC HTTPS!";
+          } else {
+            promptText.textContent = "CAMERA BỊ CHẶN HOẶC ĐANG BẬN. VUI LÒNG CẤP QUYỀN CAMERA TRÊN TRÌNH DUYỆT!";
+          }
+        }
+      }
       if (toggleBtn) {
         const lbl = document.getElementById("webcam-toggle-label");
         if (lbl) lbl.textContent = "BẬT";

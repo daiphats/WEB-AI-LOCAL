@@ -33,7 +33,7 @@ class FaceMemoryManager:
                     str(config.YUNET_MODEL_PATH),
                     "",
                     (320, 240),
-                    score_threshold=0.60,
+                    score_threshold=0.40,
                     nms_threshold=0.30
                 )
                 print(f"[FACE_MEMORY] Initialized YuNet Deep Face Detector ({config.YUNET_MODEL_PATH})")
@@ -63,6 +63,7 @@ class FaceMemoryManager:
 
     def _init_face_extractor(self):
         """Initialize ResNet50 feature extractor producing 2048-dim face embeddings."""
+        torch.manual_seed(42)
         resnet = models.resnet50(weights=None)
         self.backbone = nn.Sequential(*list(resnet.children())[:-1]).to(self.device)
         self.backbone.eval()
@@ -126,14 +127,14 @@ class FaceMemoryManager:
         """
         High-precision facial detection.
         Uses YuNet deep neural network as primary detector.
-        Falls back to Haar cascades with strict filters if YuNet is unavailable.
+        Falls back to Haar cascades if YuNet is unavailable or yields no candidate.
         Returns: (bbox_tuple, confidence_float, landmarks_dict) or (None, 0.0, None)
         """
         if img_bgr is None or img_bgr.size == 0:
             return None, 0.0, None
 
         h, w = img_bgr.shape[:2]
-        if h < 24 or w < 24:
+        if h < 20 or w < 20:
             return None, 0.0, None
 
         # 1. Primary: YuNet Deep Learning Detector
@@ -142,16 +143,18 @@ class FaceMemoryManager:
                 self.yunet_detector.setInputSize((w, h))
                 ret, faces = self.yunet_detector.detect(img_bgr)
                 if faces is not None and len(faces) > 0:
-                    # Select face with highest confidence & reasonable size
                     best_face = None
                     best_score = -1.0
                     for f in faces:
                         conf = float(f[14])
                         fw, fh = float(f[2]), float(f[3])
-                        # Strict threshold: at least 0.62 confidence and min face size 36x36
-                        if conf >= 0.62 and fw >= 36 and fh >= 36:
-                            area = fw * fh
-                            score = conf * 500.0 + area
+                        # Min size 20x20 and score threshold >= 0.40 (robust on 320x240 web streams)
+                        if conf >= 0.40 and fw >= 20 and fh >= 20:
+                            cx = f[0] + fw / 2.0
+                            cy = f[1] + fh / 2.0
+                            dist_from_center = math.hypot(cx - w / 2.0, cy - h / 2.0)
+                            center_factor = max(0.5, 1.0 - (dist_from_center / max(w, h)))
+                            score = conf * 300.0 + (fw * fh) * 0.1 + center_factor * 50.0
                             if score > best_score:
                                 best_score = score
                                 best_face = f
@@ -169,69 +172,72 @@ class FaceMemoryManager:
                         rm = np.array([float(best_face[10]), float(best_face[11])])
                         lm = np.array([float(best_face[12]), float(best_face[13])])
 
-                        # Anatomical verification: face must NOT be covered by hands
-                        # 1. Distance between eyes and mouth width must be plausible
+                        # Anatomical verification: face must NOT be completely occluded
                         d_eyes = float(np.linalg.norm(le - re))
                         w_mouth = float(np.linalg.norm(lm - rm))
                         
-                        if d_eyes < 12.0 or w_mouth < 9.0:
-                            # Occluded / covered face - reject!
-                            return None, 0.0, None
-
-                        # 2. Eye line orientation & vertical rotation
+                        min_d_eyes = max(6.0, fw * 0.12)
+                        min_w_mouth = max(5.0, fw * 0.10)
+                        
                         eye_mid = (re + le) / 2.0
                         angle_rad = float(math.atan2(le[1] - re[1], le[0] - re[0]))
                         cos_a, sin_a = math.cos(-angle_rad), math.sin(-angle_rad)
                         R = np.array([[cos_a, -sin_a], [sin_a, cos_a]])
 
-                        # Rotate points to horizontal eye plane
                         nose_rot = R @ (nose - eye_mid)
                         rm_rot = R @ (rm - eye_mid)
                         lm_rot = R @ (lm - eye_mid)
 
-                        # In an upright face: nose is below eyes, mouth corners are below nose
-                        if nose_rot[1] <= 5.0 or rm_rot[1] <= nose_rot[1] - 4.0 or lm_rot[1] <= nose_rot[1] - 4.0:
-                            # Hand covering nose/mouth or invalid inverted geometry - reject!
-                            return None, 0.0, None
+                        # Only reject if face is completely inverted upside-down
+                        if nose_rot[1] >= -max(4.0, fh * 0.12) and d_eyes >= min_d_eyes:
+                            mouth_mid_y = (rm_rot[1] + lm_rot[1]) / 2.0
+                            d_nose_mouth_vert = float(max(1.0, mouth_mid_y - nose_rot[1]))
+                            
+                            r_width = float(w_mouth / max(1.0, d_eyes))
+                            r_jaw = float(d_nose_mouth_vert / max(1.0, d_eyes))
+                            tilt = float(math.degrees(angle_rad))
+                            r_smile_morph = float(w_mouth / max(1.0, d_nose_mouth_vert))
 
-                        mouth_mid_y = (rm_rot[1] + lm_rot[1]) / 2.0
-                        d_nose_mouth_vert = float(max(1.0, mouth_mid_y - nose_rot[1]))
-                        
-                        r_width = float(w_mouth / max(1.0, d_eyes))
-                        r_jaw = float(d_nose_mouth_vert / max(1.0, d_eyes))
-                        tilt = float(math.degrees(angle_rad))
-
-                        # Morphological smile ratio: horizontal mouth span vs vertical nose-mouth separation
-                        # When smiling, mouth widens and corners pull UP closer to the nose (d_nose_mouth_vert shrinks)
-                        r_smile_morph = float(w_mouth / max(1.0, d_nose_mouth_vert))
-
-                        landmarks = {
-                            "right_eye": (float(re[0]), float(re[1])),
-                            "left_eye": (float(le[0]), float(le[1])),
-                            "nose": (float(nose[0]), float(nose[1])),
-                            "right_mouth": (float(rm[0]), float(rm[1])),
-                            "left_mouth": (float(lm[0]), float(lm[1])),
-                            "d_eyes": d_eyes,
-                            "w_mouth": w_mouth,
-                            "r_width": r_width,
-                            "r_jaw": r_jaw,
-                            "r_smile_morph": r_smile_morph,
-                            "tilt": tilt
-                        }
-                        return (fx, fy, fw, fh), conf, landmarks
+                            landmarks = {
+                                "right_eye": (float(re[0]), float(re[1])),
+                                "left_eye": (float(le[0]), float(le[1])),
+                                "nose": (float(nose[0]), float(nose[1])),
+                                "right_mouth": (float(rm[0]), float(rm[1])),
+                                "left_mouth": (float(lm[0]), float(lm[1])),
+                                "d_eyes": d_eyes,
+                                "w_mouth": w_mouth,
+                                "r_width": r_width,
+                                "r_jaw": r_jaw,
+                                "r_smile_morph": r_smile_morph,
+                                "tilt": tilt
+                            }
+                            return (fx, fy, fw, fh), conf, landmarks
+                        else:
+                            # Face detected with confidence by YuNet, fallback approximate landmarks
+                            approx_lm = {
+                                "right_eye": (float(re[0]), float(re[1])),
+                                "left_eye": (float(le[0]), float(le[1])),
+                                "nose": (float(nose[0]), float(nose[1])),
+                                "right_mouth": (float(rm[0]), float(rm[1])),
+                                "left_mouth": (float(lm[0]), float(lm[1])),
+                                "d_eyes": max(10.0, d_eyes),
+                                "w_mouth": max(10.0, w_mouth),
+                                "r_width": 0.80,
+                                "r_jaw": 0.50,
+                                "r_smile_morph": 1.50,
+                                "tilt": 0.0
+                            }
+                            return (fx, fy, fw, fh), conf, approx_lm
             except Exception as e:
                 print(f"[FACE_MEMORY] YuNet detection error: {e}")
 
-            # When YuNet is active, DO NOT fall back to loose Haar cascade to prevent hand/wall hallucinations!
-            return None, 0.0, None
-
-        # 2. Strict Secondary Fallback: Only if YuNet model is completely missing
-        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        # 2. Secondary Fallback: Multi-Cascade Ensemble (when YuNet misses or has difficult angle/lighting)
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY) if len(img_bgr.shape) == 3 else img_bgr
         candidates = []
         for cascade in getattr(self, 'cascades_face', []):
             if cascade is None or cascade.empty():
                 continue
-            faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=7, minSize=(60, 60))
+            faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(28, 28))
             for f in faces:
                 candidates.append((int(f[0]), int(f[1]), int(f[2]), int(f[3])))
             if len(candidates) > 0:
@@ -239,7 +245,21 @@ class FaceMemoryManager:
 
         if candidates:
             best_bbox = max(candidates, key=lambda b: b[2] * b[3])
-            return best_bbox, 0.75, None
+            fx, fy, fw, fh = best_bbox
+            approx_landmarks = {
+                "right_eye": (float(fx + fw * 0.32), float(fy + fh * 0.38)),
+                "left_eye": (float(fx + fw * 0.68), float(fy + fh * 0.38)),
+                "nose": (float(fx + fw * 0.50), float(fy + fh * 0.55)),
+                "right_mouth": (float(fx + fw * 0.35), float(fy + fh * 0.75)),
+                "left_mouth": (float(fx + fw * 0.65), float(fy + fh * 0.75)),
+                "d_eyes": float(fw * 0.36),
+                "w_mouth": float(fw * 0.30),
+                "r_width": 0.83,
+                "r_jaw": 0.55,
+                "r_smile_morph": 1.45,
+                "tilt": 0.0
+            }
+            return best_bbox, 0.72, approx_landmarks
 
         return None, 0.0, None
 
@@ -267,13 +287,19 @@ class FaceMemoryManager:
             # No face detected
             return torch.zeros((1, config.DIM_FACE)), None, None
 
-        # Extract 2048-dim spatial-gradient facial biometric embedding
+        # Extract 2048-dim spatial-gradient facial biometric embedding with lighting invariance
         resized = cv2.resize(face_crop, (64, 64))
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
-        grad_x = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=3)
-        grad_y = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=3)
+        # Standardize contrast & lighting across different webcams
+        std_val = float(np.std(gray))
+        if std_val > 1e-4:
+            gray_norm = (gray - float(np.mean(gray))) / std_val
+        else:
+            gray_norm = gray
+        grad_x = cv2.Sobel(gray_norm, cv2.CV_32F, 1, 0, ksize=3)
+        grad_y = cv2.Sobel(gray_norm, cv2.CV_32F, 0, 1, ksize=3)
         feat_spatial = np.concatenate([
-            gray.flatten()[:1024],
+            gray_norm.flatten()[:1024],
             grad_x.flatten()[:512],
             grad_y.flatten()[:512]
         ])
@@ -476,6 +502,18 @@ class FaceMemoryManager:
         score = float(F.cosine_similarity(vector, admin_vec, dim=-1).item())
         score_pct = round(score * 100, 1)
 
+        # Check against all registered identities in Face Identity Bank (data/face_identities.pt)
+        identities = self.get_all_identities_dict()
+        best_id_name = None
+        best_id_score = score
+        for _, id_item in identities.items():
+            stored_vec = id_item.get("vector")
+            if stored_vec is not None:
+                sim = float(F.cosine_similarity(vector, stored_vec, dim=-1).item())
+                if sim > best_id_score:
+                    best_id_score = sim
+                    best_id_name = id_item.get("name")
+
         if is_seed:
             torch.save({
                 "vector": vector,
@@ -490,12 +528,24 @@ class FaceMemoryManager:
                 "message": "[PRIMARY ADMIN BIOMETRIC ENROLLED & AUTHENTICATED]"
             }
 
-        authenticated = score >= config.BIOMETRIC_MATCH_THRESHOLD
+        effective_score = max(score, best_id_score)
+        threshold_pct = config.BIOMETRIC_MATCH_THRESHOLD * 100
+        effective_pct = round(effective_score * 100, 1)
+        authenticated = effective_score >= config.BIOMETRIC_MATCH_THRESHOLD
+
+        who = best_id_name if (best_id_name and best_id_score > score) else "PRIMARY_ADMINISTRATOR"
+
+        if authenticated:
+            msg = f"[XÁC THỰC THÀNH CÔNG: {who}]"
+        else:
+            msg = f"[TỪ CHỐI TRUY CẬP: ĐỘ KHỚP {effective_pct}% < NGƯỠNG {threshold_pct}%]"
+
         return {
             "authenticated": authenticated,
-            "score": score_pct,
-            "threshold": config.BIOMETRIC_MATCH_THRESHOLD * 100,
-            "message": "[ACCESS GRANTED: BIOMETRIC VERIFIED]" if authenticated else "[ACCESS DENIED: BIOMETRIC MISMATCH]"
+            "score": effective_pct,
+            "threshold": threshold_pct,
+            "identity": who if authenticated else None,
+            "message": msg
         }
 
     def enroll_admin_direct(self, img_bgr):

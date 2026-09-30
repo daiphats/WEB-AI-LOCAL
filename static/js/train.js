@@ -95,7 +95,11 @@ class TrainingStudioManager {
       console.warn("[GATE] Camera access failed:", err);
       const statusEl = document.getElementById("gate-status-badge");
       if (statusEl) {
-        statusEl.textContent = "[CAMERA BLOCKED: VUI LÒNG DÙNG FILE ẢNH]";
+        if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+          statusEl.textContent = "[TRÌNH DUYỆT CHẶN CAM QUA HTTP LAN: DÙNG LOCALHOST HOẶC HTTPS]";
+        } else {
+          statusEl.textContent = "[CAMERA BỊ CHẶN HOẶC ĐANG BẬN: VUI LÒNG CẤP QUYỀN]";
+        }
         statusEl.className = "badge badge-warning";
       }
     }
