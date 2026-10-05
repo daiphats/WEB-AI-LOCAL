@@ -14,6 +14,7 @@ import torch.nn.functional as F
 import torchvision.models as models
 import torchvision.transforms as transforms
 import config
+from core.image_quality import enhance_image, is_usable
 
 class FaceMemoryManager:
     """
@@ -29,14 +30,19 @@ class FaceMemoryManager:
         self.yunet_detector = None
         if hasattr(config, 'YUNET_MODEL_PATH') and config.YUNET_MODEL_PATH.exists() and hasattr(cv2, 'FaceDetectorYN'):
             try:
+                model_bytes = np.frombuffer(config.YUNET_MODEL_PATH.read_bytes(), dtype=np.uint8)
                 self.yunet_detector = cv2.FaceDetectorYN.create(
-                    str(config.YUNET_MODEL_PATH),
-                    "",
+                    "onnx",
+                    model_bytes,
+                    np.array([], dtype=np.uint8),
                     (320, 240),
-                    score_threshold=0.40,
+                    score_threshold=config.YUNET_MIN_SCORE,
                     nms_threshold=0.30
                 )
-                print(f"[FACE_MEMORY] Initialized YuNet Deep Face Detector ({config.YUNET_MODEL_PATH})")
+                try:
+                    print(f"[FACE_MEMORY] Initialized YuNet Deep Face Detector ({config.YUNET_MODEL_PATH})")
+                except Exception:
+                    print(f"[FACE_MEMORY] Initialized YuNet Deep Face Detector ({config.YUNET_MODEL_PATH.name})")
             except Exception as e:
                 print(f"[FACE_MEMORY] Warning: Could not initialize YuNet: {e}")
                 self.yunet_detector = None
@@ -88,7 +94,7 @@ class FaceMemoryManager:
             }, config.ADMIN_FACE_PATH)
             print(f"[FACE_MEMORY] Initialized baseline admin vector at {config.ADMIN_FACE_PATH}")
 
-    def decode_image_from_base64(self, b64_str):
+    def decode_image_from_base64(self, b64_str, enhance=False):
         """Decode base64 image data URL or raw string to OpenCV BGR image."""
         if not b64_str or not isinstance(b64_str, str):
             return None
@@ -106,6 +112,8 @@ class FaceMemoryManager:
             if nparr.size == 0:
                 return None
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if img is not None and enhance:
+                img, _, _ = enhance_image(img)
             return img
         except Exception as e:
             print(f"[FACE_MEMORY] decode_image_from_base64 error: {e}")
@@ -124,6 +132,26 @@ class FaceMemoryManager:
         return f"data:image/jpeg;base64,{b64}"
 
     def detect_face_detailed(self, img_bgr):
+        """Thử ảnh gốc, rồi ảnh phóng to 2x, trả về kết quả đầu tiên có mặt."""
+        res = self._detect_face_once(img_bgr)
+        if res[0] is not None:
+            return res
+
+        if img_bgr is not None and img_bgr.size > 0 and max(img_bgr.shape[:2]) <= 480:
+            big = cv2.resize(img_bgr, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+            bbox, conf, lm = self._detect_face_once(big)
+            if bbox is not None:
+                x, y, w, h = bbox
+                bbox = (x // 2, y // 2, w // 2, h // 2)
+                if lm:
+                    for k in ("right_eye", "left_eye", "nose", "right_mouth", "left_mouth"):
+                        lm[k] = (lm[k][0] / 2.0, lm[k][1] / 2.0)
+                    lm["d_eyes"] /= 2.0
+                    lm["w_mouth"] /= 2.0
+                return bbox, conf, lm
+        return None, 0.0, None
+
+    def _detect_face_once(self, img_bgr):
         """
         High-precision facial detection.
         Uses YuNet deep neural network as primary detector.
@@ -149,15 +177,30 @@ class FaceMemoryManager:
                         conf = float(f[14])
                         fw, fh = float(f[2]), float(f[3])
                         # Min size 20x20 and score threshold >= 0.40 (robust on 320x240 web streams)
-                        if conf >= 0.40 and fw >= 20 and fh >= 20:
+                        if conf >= config.YUNET_MIN_SCORE and fw >= 20 and fh >= 20 and 0.6 <= (fw / max(fh, 1.0)) <= 1.3:
                             cx = f[0] + fw / 2.0
                             cy = f[1] + fh / 2.0
                             dist_from_center = math.hypot(cx - w / 2.0, cy - h / 2.0)
                             center_factor = max(0.5, 1.0 - (dist_from_center / max(w, h)))
-                            score = conf * 300.0 + (fw * fh) * 0.1 + center_factor * 50.0
+                            score = conf * 1000.0 + min(fw * fh, 40000) * 0.002 + center_factor * 30.0
                             if score > best_score:
                                 best_score = score
                                 best_face = f
+
+                    if best_face is not None:
+                        bx, by, bw, bh = best_face[0], best_face[1], best_face[2], best_face[3]
+                        margin_x = bw * 0.25
+                        margin_y = bh * 0.25
+                        box_x1 = bx - margin_x
+                        box_y1 = by - margin_y
+                        box_x2 = bx + bw + margin_x
+                        box_y2 = by + bh + margin_y
+
+                        for i in range(4, 14, 2):
+                            lx, ly = best_face[i], best_face[i + 1]
+                            if not (box_x1 <= lx <= box_x2 and box_y1 <= ly <= box_y2):
+                                best_face = None
+                                break
 
                     if best_face is not None:
                         fx = int(max(0, best_face[0]))
@@ -213,23 +256,29 @@ class FaceMemoryManager:
                             }
                             return (fx, fy, fw, fh), conf, landmarks
                         else:
-                            # Face detected with confidence by YuNet, fallback approximate landmarks
-                            approx_lm = {
-                                "right_eye": (float(re[0]), float(re[1])),
-                                "left_eye": (float(le[0]), float(le[1])),
-                                "nose": (float(nose[0]), float(nose[1])),
-                                "right_mouth": (float(rm[0]), float(rm[1])),
-                                "left_mouth": (float(lm[0]), float(lm[1])),
-                                "d_eyes": max(10.0, d_eyes),
-                                "w_mouth": max(10.0, w_mouth),
-                                "r_width": 0.80,
-                                "r_jaw": 0.50,
-                                "r_smile_morph": 1.50,
-                                "tilt": 0.0
-                            }
-                            return (fx, fy, fw, fh), conf, approx_lm
+                            if conf >= 0.80:
+                                # Face detected with confidence by YuNet, fallback approximate landmarks
+                                approx_lm = {
+                                    "right_eye": (float(re[0]), float(re[1])),
+                                    "left_eye": (float(le[0]), float(le[1])),
+                                    "nose": (float(nose[0]), float(nose[1])),
+                                    "right_mouth": (float(rm[0]), float(rm[1])),
+                                    "left_mouth": (float(lm[0]), float(lm[1])),
+                                    "d_eyes": max(10.0, d_eyes),
+                                    "w_mouth": max(10.0, w_mouth),
+                                    "r_width": 0.80,
+                                    "r_jaw": 0.50,
+                                    "r_smile_morph": 1.50,
+                                    "tilt": 0.0
+                                }
+                                return (fx, fy, fw, fh), conf, approx_lm
+                            else:
+                                pass
             except Exception as e:
                 print(f"[FACE_MEMORY] YuNet detection error: {e}")
+
+        if not getattr(config, "USE_HAAR_FALLBACK", False):
+            return None, 0.0, None
 
         # 2. Secondary Fallback: Multi-Cascade Ensemble (when YuNet misses or has difficult angle/lighting)
         gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY) if len(img_bgr.shape) == 3 else img_bgr
@@ -283,6 +332,10 @@ class FaceMemoryManager:
             x, y, w, h = bbox_res
             face_crop = img_bgr[y:y+h, x:x+w]
             bbox = (int(x), int(y), int(w), int(h))
+
+            ok, reason = is_usable(face_crop)
+            if not ok:
+                return torch.zeros((1, config.DIM_FACE)), None, None
         else:
             # No face detected
             return torch.zeros((1, config.DIM_FACE)), None, None
@@ -459,6 +512,8 @@ class FaceMemoryManager:
         return {
             "face_detected": True,
             "bbox": [int(x), int(y), int(fw), int(fh)],
+            "frame_w": int(w),
+            "frame_h": int(h),
             "confidence": round(conf * 100.0, 1),
             "landmarks": landmarks,
             "is_smiling": is_smiling,

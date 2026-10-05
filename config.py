@@ -24,7 +24,18 @@ DIM_SPEECH = 768     # 16kHz audio spectral / acoustic feature projection
 DIM_TEXT = 768       # Semantic text embedding projection
 DIM_FUSED = 256      # Joint GMU embedding space
 
-BIOMETRIC_MATCH_THRESHOLD = 0.70
+BIOMETRIC_MATCH_THRESHOLD = 0.55
+
+# Image quality / adaptive enhancement
+BLUR_THRESHOLD = 80.0          # Laplacian variance < ngưỡng này => mờ
+BLUR_REJECT_THRESHOLD = 25.0   # mờ quá thì bỏ frame
+LOW_LIGHT_MEAN = 85            # độ sáng trung bình (0-255) thấp hơn => thiếu sáng
+HIGH_LIGHT_MEAN = 175          # cao hơn => chói
+OVEREXPOSED_RATIO = 0.15       # >15% pixel > 250 => cháy sáng
+UNDEREXPOSED_RATIO = 0.40      # >40% pixel < 30 => quá tối
+MIN_FACE_SIZE = 40             # mặt nhỏ hơn (px) thì không tin cậy
+TARGET_BRIGHTNESS = 120        # độ sáng mục tiêu
+
 
 EMOTION_CLASSES = [
     "HAPPY / EQUILIBRIUM",
@@ -46,3 +57,7 @@ YUNET_MODEL_PATH = DATA_DIR / "face_detection_yunet_2023mar.onnx"
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 8000
+
+# Face detection hardening
+YUNET_MIN_SCORE = 0.75
+USE_HAAR_FALLBACK = False
