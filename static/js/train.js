@@ -84,7 +84,7 @@ class TrainingStudioManager {
 
     try {
       this.gateStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" }
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" }
       });
       video.srcObject = this.gateStream;
       await video.play();
@@ -121,11 +121,11 @@ class TrainingStudioManager {
     }
 
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = 640;
+    canvas.height = 480;
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const b64 = canvas.toDataURL("image/jpeg", 0.85);
+    ctx.drawImage(video, 0, 0, 640, 480);
+    const b64 = canvas.toDataURL("image/jpeg", 0.92);
 
     try {
       const res = await fetch("/api/auth/verify_face", {
@@ -167,11 +167,11 @@ class TrainingStudioManager {
     }
 
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = 640;
+    canvas.height = 480;
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const b64 = canvas.toDataURL("image/jpeg", 0.85);
+    ctx.drawImage(video, 0, 0, 640, 480);
+    const b64 = canvas.toDataURL("image/jpeg", 0.92);
 
     try {
       const res = await fetch("/api/auth/enroll_admin", {

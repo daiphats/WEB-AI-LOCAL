@@ -228,11 +228,11 @@ class MimicMatchGame {
 
     if (video && video.videoWidth > 0) {
       const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      canvas.width = 640;
+      canvas.height = 480;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      b64Image = canvas.toDataURL("image/jpeg", 0.85);
+      ctx.drawImage(video, 0, 0, 640, 480);
+      b64Image = canvas.toDataURL("image/jpeg", 0.92);
     }
 
     const station = window.clinicalStation;

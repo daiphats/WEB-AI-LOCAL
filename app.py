@@ -91,19 +91,19 @@ async def train_page(request: Request):
 # -----------------------------------------------------------------------------
 @app.post("/api/auth/verify_face")
 async def verify_face(req: AuthFaceRequest):
-    img = face_memory.decode_image_from_base64(req.image_b64)
+    img = face_memory.decode_image_from_base64(req.image_b64, enhance=True)
     result = face_memory.verify_admin_biometrics(img_bgr=img)
     return JSONResponse(result)
 
 @app.post("/api/auth/enroll_admin")
 async def enroll_admin(req: AuthFaceRequest):
-    img = face_memory.decode_image_from_base64(req.image_b64)
+    img = face_memory.decode_image_from_base64(req.image_b64, enhance=True)
     success, msg = face_memory.enroll_admin_direct(img)
     return JSONResponse({"success": success, "message": msg})
 
 @app.post("/api/face/enroll")
 async def enroll_face(req: EnrollIdentityRequest):
-    img = face_memory.decode_image_from_base64(req.image_b64)
+    img = face_memory.decode_image_from_base64(req.image_b64, enhance=True)
     success, msg = face_memory.enroll_face_identity(req.name, img)
     return JSONResponse({"success": success, "message": msg})
 
@@ -122,7 +122,7 @@ async def get_game_target():
 
 @app.post("/api/game/evaluate")
 async def evaluate_game_mimic(req: GameEvaluateRequest):
-    img = face_memory.decode_image_from_base64(req.image_b64) if req.image_b64 else None
+    img = face_memory.decode_image_from_base64(req.image_b64, enhance=True) if req.image_b64 else None
     analysis = None
     face_vec = None
     face_crop = None
@@ -159,7 +159,7 @@ async def evaluate_vocal_assessment(req: VocalAssessmentRequest):
     smile_score = 0.0
 
     if req.image_b64:
-        img = face_memory.decode_image_from_base64(req.image_b64)
+        img = face_memory.decode_image_from_base64(req.image_b64, enhance=True)
         if img is not None:
             analysis = face_memory.analyze_live_frame(img)
             face_detected = bool(analysis["face_detected"])
@@ -472,19 +472,23 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
                 pred["mental_exhaustion_level"] = 0 if target_val > 0.3 else (3 if target_val < -0.3 else 1)
                 pred["face_detected"] = True
                 pred["bbox"] = [180, 70, 260, 290]
+                pred["frame_w"] = 640
+                pred["frame_h"] = 480
                 pred["is_smiling"] = (target_val > 0.4)
                 pred["smile_score"] = 85.0 if target_val > 0.4 else 0.0
                 pred["head_tilt_deg"] = 0.0
                 pred["posture_warning"] = False
             elif image_b64:
                 # Real webcam frame from client
-                img = face_memory.decode_image_from_base64(image_b64)
+                img = face_memory.decode_image_from_base64(image_b64, enhance=True)
                 analysis = face_memory.analyze_live_frame(img)
                 f_vec, _, _ = face_memory.extract_face_vector(img)
                 pred = fusion_engine.predict_multimodal(f_vec, b_vec, s_vec, t_vec)
 
                 pred["face_detected"] = analysis["face_detected"]
                 pred["bbox"] = analysis["bbox"]
+                pred["frame_w"] = analysis.get("frame_w")
+                pred["frame_h"] = analysis.get("frame_h")
                 pred["is_smiling"] = analysis["is_smiling"]
                 pred["smile_score"] = analysis["smile_score"]
                 pred["head_tilt_deg"] = analysis["head_tilt_deg"]
@@ -503,6 +507,8 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
                 pred["arousal"] = sim_a
                 pred["face_detected"] = False
                 pred["bbox"] = [180, 70, 260, 290]
+                pred["frame_w"] = 640
+                pred["frame_h"] = 480
                 pred["is_smiling"] = False
                 pred["smile_score"] = 0.0
                 pred["head_tilt_deg"] = 0.0

@@ -26,6 +26,7 @@ class ClinicalStationApp {
     this.isSmiling = false;
     this.smileScore = 0.0;
     this.headTilt = 0.0;
+    this.trajectoryHistory = [];
   }
 
   async init() {
@@ -140,7 +141,7 @@ class ClinicalStationApp {
     try {
       // Request ONLY video first so missing/busy audio never blocks webcam!
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" }
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" }
       });
       video.srcObject = this.mediaStream;
       await video.play();
@@ -237,19 +238,37 @@ class ClinicalStationApp {
       const h = canvas.height;
 
       if (this.isCameraActive && this.lastFaceDetected && this.lastBbox) {
-        // Map 320x240 frame coordinates to canvas coordinates
+        // Map sent frame coordinates to displayed canvas coordinates
         const rawX = this.lastBbox[0];
         const rawY = this.lastBbox[1];
         const rawW = this.lastBbox[2];
         const rawH = this.lastBbox[3];
 
-        const scaleX = w / 320;
-        const scaleY = h / 240;
+        const sentW = this.lastFrameW || this.sentFrameWidth || 640;
+        const sentH = this.lastFrameH || this.sentFrameHeight || 480;
 
-        const bx = rawX * scaleX;
-        const by = rawY * scaleY;
-        const bw = rawW * scaleX;
-        const bh = rawH * scaleY;
+        // Video dimensions
+        const vw = (video && video.videoWidth > 0) ? video.videoWidth : sentW;
+        const vh = (video && video.videoHeight > 0) ? video.videoHeight : sentH;
+
+        // Account for object-fit: cover scaling and cropping
+        const scale = Math.max(w / vw, h / vh);
+        const renderedW = vw * scale;
+        const renderedH = vh * scale;
+        const offsetX = (w - renderedW) / 2;
+        const offsetY = (h - renderedH) / 2;
+
+        // Position on displayed screen (overlay and video are both mirrored by CSS, so no double flip)
+        const uncalibratedBx = (rawX / sentW) * renderedW + offsetX;
+        const uncalibratedBy = (rawY / sentH) * renderedH + offsetY;
+        const uncalibratedBw = (rawW / sentW) * renderedW;
+        const uncalibratedBh = (rawH / sentH) * renderedH;
+
+        // Clamp bounding box to viewport to prevent clipping/overflow
+        const bx = Math.max(0, Math.min(uncalibratedBx, w - 10));
+        const by = Math.max(0, Math.min(uncalibratedBy, h - 10));
+        const bw = Math.max(10, Math.min(uncalibratedBw, w - bx));
+        const bh = Math.max(10, Math.min(uncalibratedBh, h - by));
 
         // Bounding box border
         ctx.strokeStyle = this.isSmiling ? "#059669" : "rgba(255, 255, 255, 0.4)";
@@ -269,22 +288,27 @@ class ClinicalStationApp {
         // BR
         ctx.beginPath(); ctx.moveTo(bx + bw - clen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - clen); ctx.stroke();
 
-        // Label above bbox (Un-mirrored for standard human reading)
-        ctx.save();
-        ctx.translate(bx + bw / 2, Math.max(16, by - 8));
-        ctx.scale(-1, 1);
-        ctx.textAlign = "center";
-        ctx.font = "bold 11px 'JetBrains Mono', monospace";
+        // Label above bbox (Un-mirrored for standard human reading, clamped inside viewport)
+        let labelText = "[KHUÔN MẶT ĐÃ KHỚP CHUẨN]";
+        let labelColor = "#34D399";
         if (this.isSmiling) {
-          ctx.fillStyle = "#10B981";
-          ctx.fillText(`[PHÁT HIỆN NỤ CƯỜI DUCHENNE: +${this.smileScore}%]`, 0, 0);
+          labelColor = "#10B981";
+          labelText = `[PHÁT HIỆN NỤ CƯỜI DUCHENNE: +${this.smileScore}%]`;
         } else if (Math.abs(this.headTilt) > 14) {
-          ctx.fillStyle = "#D97706";
-          ctx.fillText(`[CẢNH BÁO TƯ THẾ: LỆCH CỔ ${this.headTilt}°]`, 0, 0);
-        } else {
-          ctx.fillStyle = "#34D399";
-          ctx.fillText("[KHUÔN MẶT ĐÃ KHỚP CHUẨN]", 0, 0);
+          labelColor = "#D97706";
+          labelText = `[CẢNH BÁO TƯ THẾ: LỆCH CỔ ${this.headTilt}°]`;
         }
+
+        ctx.save();
+        ctx.font = "bold 11px 'JetBrains Mono', monospace";
+        const tw = ctx.measureText(labelText).width;
+        const lx = Math.max(0, Math.min(bx, w - tw - 4));
+        const ly = Math.max(14, by - 8);
+        ctx.translate(lx, ly);
+        ctx.scale(-1, 1);
+        ctx.textAlign = "right";
+        ctx.fillStyle = labelColor;
+        ctx.fillText(labelText, 0, 0);
         ctx.restore();
 
         // Draw dynamic posture skeleton from real face location
@@ -443,9 +467,11 @@ class ClinicalStationApp {
   }
 
   startTelemetryTransmission() {
+    this.sentFrameWidth = 640;
+    this.sentFrameHeight = 480;
     const offCanvas = document.createElement("canvas");
-    offCanvas.width = 320;
-    offCanvas.height = 240;
+    offCanvas.width = this.sentFrameWidth;
+    offCanvas.height = this.sentFrameHeight;
     const offCtx = offCanvas.getContext("2d");
     const video = document.getElementById("webcam-video");
 
@@ -453,8 +479,8 @@ class ClinicalStationApp {
       if (this.monitorWs && this.monitorWs.readyState === WebSocket.OPEN) {
         if (this.isCameraActive && video && video.videoWidth > 0) {
           // Send real camera frame to backend
-          offCtx.drawImage(video, 0, 0, 320, 240);
-          const b64 = offCanvas.toDataURL("image/jpeg", 0.70);
+          offCtx.drawImage(video, 0, 0, 640, 480);
+          const b64 = offCanvas.toDataURL("image/jpeg", 0.92);
           this.monitorWs.send(JSON.stringify({
             action: "monitor_frame",
             image_b64: b64
@@ -484,6 +510,8 @@ class ClinicalStationApp {
 
     // Cache real detection results for canvas rendering
     this.lastBbox = data.bbox;
+    this.lastFrameW = data.frame_w;
+    this.lastFrameH = data.frame_h;
     this.lastFaceDetected = data.face_detected;
     this.isSmiling = data.is_smiling;
     this.smileScore = data.smile_score || 0;
@@ -626,11 +654,11 @@ class ClinicalStationApp {
     let b64Frame = "";
     if (video && video.videoWidth) {
       const canvas = document.createElement("canvas");
-      canvas.width = 480;
-      canvas.height = 360;
+      canvas.width = 640;
+      canvas.height = 480;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      b64Frame = canvas.toDataURL("image/jpeg", 0.75);
+      ctx.drawImage(video, 0, 0, 640, 480);
+      b64Frame = canvas.toDataURL("image/jpeg", 0.92);
     }
 
     // Wait 3.5 seconds to capture speech duration
@@ -839,11 +867,11 @@ class ClinicalStationApp {
       return null;
     }
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    canvas.width = 640;
+    canvas.height = 480;
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.85);
+    ctx.drawImage(video, 0, 0, 640, 480);
+    return canvas.toDataURL("image/jpeg", 0.92);
   }
 
   cancelAssessment(reason = "") {
