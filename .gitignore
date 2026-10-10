@@ -24,8 +24,9 @@ checkpoints/
 *.bin
 *.onnx
 
-# Data directories (thường chứa file lớn)
-data/
+# Data directories (đã mở để push data)
+!data/
+!data/**
 
 # Scratch / temp
 scratch/

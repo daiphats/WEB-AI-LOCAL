@@ -22,11 +22,15 @@ class ClinicalStationApp {
     // Realtime Face Detection Telemetry
     this.isCameraActive = false;
     this.lastBbox = null;
+    this.lastLandmarks = null;
+    this.isSplitView = false;
     this.lastFaceDetected = false;
     this.isSmiling = false;
     this.smileScore = 0.0;
     this.headTilt = 0.0;
     this.trajectoryHistory = [];
+    this.multiverseSliderVal = 0.0;
+    this.maxTrajectoryPoints = 60;
   }
 
   async init() {
@@ -35,7 +39,7 @@ class ClinicalStationApp {
     this.initBreathingPacer();
     this.startCanvasHUDLoop();
     this.initWebSocketStream();
-    this.initTrajectoryChart();
+    this.initECGHospitalMonitor();
     await this.loadNewVocalPrompt();
 
     // Auto attempt camera startup
@@ -116,6 +120,9 @@ class ClinicalStationApp {
           window.mimicGame.attachWebcamStream();
         } else if (targetId === "tab-forecast") {
           this.renderTrajectoryChart();
+          if (window.multiverseSim) {
+            window.multiverseSim.onTabActivated();
+          }
         }
       });
     });
@@ -153,6 +160,12 @@ class ClinicalStationApp {
         if (lbl) lbl.textContent = "TẮT";
         toggleBtn.classList.add("is-active");
       }
+      const multiToggle = document.getElementById("multiverse-cam-toggle-btn");
+      if (multiToggle) {
+        const mlbl = document.getElementById("multiverse-cam-toggle-label");
+        if (mlbl) mlbl.textContent = "TẮT";
+        multiToggle.classList.add("is-active");
+      }
       if (statusText) {
         statusText.textContent = "RESNET50 (2048-D) ACTIVE";
       }
@@ -161,9 +174,12 @@ class ClinicalStationApp {
         devBadge.innerHTML = `<span class="status-dot-pulse"></span> Live`;
       }
 
-      // Sync with mimic game camera viewport
+      // Sync with mimic game and multiverse camera viewports
       if (window.mimicGame) {
         window.mimicGame.attachWebcamStream();
+      }
+      if (window.multiverseSim) {
+        window.multiverseSim.syncCameraStream();
       }
     } catch (err) {
       console.warn("[CAMERA] Access not granted or camera busy:", err);
@@ -182,6 +198,12 @@ class ClinicalStationApp {
         const lbl = document.getElementById("webcam-toggle-label");
         if (lbl) lbl.textContent = "BẬT";
         toggleBtn.classList.remove("is-active");
+      }
+      const multiToggle = document.getElementById("multiverse-cam-toggle-btn");
+      if (multiToggle) {
+        const mlbl = document.getElementById("multiverse-cam-toggle-label");
+        if (mlbl) mlbl.textContent = "BẬT";
+        multiToggle.classList.remove("is-active");
       }
     }
   }
@@ -205,226 +227,461 @@ class ClinicalStationApp {
       toggleBtn.classList.remove("is-active");
     }
 
+    const multiToggle = document.getElementById("multiverse-cam-toggle-btn");
+    if (multiToggle) {
+      const mlbl = document.getElementById("multiverse-cam-toggle-label");
+      if (mlbl) mlbl.textContent = "BẬT";
+      multiToggle.classList.remove("is-active");
+    }
+
     const statusText = document.getElementById("hud-backbone-status");
     if (statusText) {
       statusText.textContent = "RESNET50 STANDBY";
     }
 
-    // Sync with mimic game
+    // Sync with mimic game and multiverse simulation
     if (window.mimicGame) {
       window.mimicGame.attachWebcamStream();
+    }
+    if (window.multiverseSim) {
+      window.multiverseSim.syncCameraStream();
+    }
+  }
+
+  drawFaceDetectionHUD(canvas, video, angle) {
+    if (!canvas) return;
+    if (canvas.parentElement) {
+      const pw = canvas.parentElement.clientWidth;
+      const ph = canvas.parentElement.clientHeight;
+      if (pw > 0 && ph > 0 && (canvas.width !== pw || canvas.height !== ph)) {
+        canvas.width = pw;
+        canvas.height = ph;
+      }
+    }
+    if (canvas.width === 0 || canvas.height === 0) return;
+
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const w = canvas.width;
+    const h = canvas.height;
+
+    const isTab3 = (canvas.id === "multiverse-overlay-canvas");
+
+    if (this.isCameraActive && this.lastFaceDetected && this.lastBbox) {
+      // Map sent frame coordinates to displayed canvas coordinates
+      const rawX = this.lastBbox[0];
+      const rawY = this.lastBbox[1];
+      const rawW = this.lastBbox[2];
+      const rawH = this.lastBbox[3];
+
+      const sentW = this.lastFrameW || this.sentFrameWidth || 640;
+      const sentH = this.lastFrameH || this.sentFrameHeight || 480;
+
+      // Video dimensions
+      const vw = (video && video.videoWidth > 0) ? video.videoWidth : sentW;
+      const vh = (video && video.videoHeight > 0) ? video.videoHeight : sentH;
+
+      // Account for object-fit: cover scaling and cropping
+      const scale = Math.max(w / vw, h / vh);
+      const renderedW = vw * scale;
+      const renderedH = vh * scale;
+      const offsetX = (w - renderedW) / 2;
+      const offsetY = (h - renderedH) / 2;
+
+      // Position on displayed screen (overlay and video are both mirrored by CSS, so no double flip)
+      const uncalibratedBx = (rawX / sentW) * renderedW + offsetX;
+      const uncalibratedBy = (rawY / sentH) * renderedH + offsetY;
+      const uncalibratedBw = (rawW / sentW) * renderedW;
+      const uncalibratedBh = (rawH / sentH) * renderedH;
+
+      // Clamp bounding box to viewport to prevent clipping/overflow
+      const bx = Math.max(0, Math.min(uncalibratedBx, w - 10));
+      const by = Math.max(0, Math.min(uncalibratedBy, h - 10));
+      const bw = Math.max(10, Math.min(uncalibratedBw, w - bx));
+      const bh = Math.max(10, Math.min(uncalibratedBh, h - by));
+
+      // Signature Green Square Face Detection Bounding Box (Clinical Standard)
+      const boxColor = "#10B981";       // Emerald green outer line
+      const cornerColor = "#34D399";    // Bright green corner brackets
+      const boxFill = "rgba(16, 185, 129, 0.08)"; // Subtle tech fill tint
+
+      // Fill inner subtle tint
+      ctx.fillStyle = boxFill;
+      ctx.fillRect(bx, by, bw, bh);
+
+      // Square bounding box border
+      ctx.strokeStyle = boxColor;
+      ctx.lineWidth = 1.8;
+      ctx.strokeRect(bx, by, bw, bh);
+
+      // Heavy green corner brackets (TL, TR, BL, BR)
+      ctx.strokeStyle = cornerColor;
+      ctx.lineWidth = 3.5;
+      const clen = Math.min(26, bw * 0.28);
+      // TL
+      ctx.beginPath(); ctx.moveTo(bx, by + clen); ctx.lineTo(bx, by); ctx.lineTo(bx + clen, by); ctx.stroke();
+      // TR
+      ctx.beginPath(); ctx.moveTo(bx + bw - clen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + clen); ctx.stroke();
+      // BL
+      ctx.beginPath(); ctx.moveTo(bx, by + bh - clen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + clen, by + bh); ctx.stroke();
+      // BR
+      ctx.beginPath(); ctx.moveTo(bx + bw - clen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - clen); ctx.stroke();
+
+      // Precision center target reticle crosshairs
+      const cx = bx + bw / 2;
+      const cy = by + bh / 2;
+      ctx.strokeStyle = "rgba(52, 211, 153, 0.55)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 7, cy); ctx.lineTo(cx + 7, cy);
+      ctx.moveTo(cx, cy - 7); ctx.lineTo(cx, cy + 7);
+      ctx.stroke();
+
+      // Label above bbox (Un-mirrored for standard human reading, clamped inside viewport)
+      let labelText = "[KHUÔN MẶT ĐÃ KHỚP CHUẨN]";
+      let labelColor = "#A7F3D0";
+      let labelBg = "rgba(6, 78, 59, 0.92)";
+      let labelBorder = "rgba(52, 211, 153, 0.75)";
+
+      if (this.isSmiling) {
+        labelColor = "#6EE7B7";
+        labelText = `[PHÁT HIỆN NỤ CƯỜI DUCHENNE: +${this.smileScore}%]`;
+      } else if (Math.abs(this.headTilt) > 14) {
+        labelColor = "#FDE68A";
+        labelBg = "rgba(120, 53, 15, 0.92)";
+        labelBorder = "rgba(245, 158, 11, 0.75)";
+        labelText = `[CẢNH BÁO TƯ THẾ: LỆCH CỔ ${this.headTilt}°]`;
+      } else if (isTab3) {
+        const emoName = (this.currentBiometrics && this.currentBiometrics.emotion) ? this.currentBiometrics.emotion : "NEUTRAL / CALM";
+        const confVal = (this.currentBiometrics && typeof this.currentBiometrics.confidence === "number") ? this.currentBiometrics.confidence : 90;
+        labelColor = "#38BDF8";
+        labelBg = "rgba(12, 74, 110, 0.92)";
+        labelBorder = "rgba(56, 189, 248, 0.75)";
+        labelText = `[AI THỊ GIÁC: ${emoName} (${confVal}%)]`;
+      }
+
+
+      ctx.save();
+      ctx.font = "bold 11px 'JetBrains Mono', monospace";
+      const tw = ctx.measureText(labelText).width;
+      const lx = Math.max(0, Math.min(bx, w - tw - 14));
+      const ly = Math.max(16, by - 8);
+      ctx.translate(lx, ly);
+      ctx.scale(-1, 1);
+
+      // Background pill for label
+      ctx.fillStyle = labelBg;
+      ctx.strokeStyle = labelBorder;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(-tw - 8, -13, tw + 8, 16, 3);
+      } else {
+        ctx.rect(-tw - 8, -13, tw + 8, 16);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = labelColor;
+      ctx.textAlign = "left";
+      ctx.fillText(labelText, -tw - 4, 0);
+      ctx.restore();
+
+      // Dynamic posture skeleton lines from real face location
+      ctx.strokeStyle = "rgba(52, 211, 153, 0.65)";
+      ctx.lineWidth = 1.8;
+      const neck = { x: bx + bw / 2, y: by + bh };
+      const shoulderL = { x: bx - bw * 0.4, y: by + bh + 36 };
+      const shoulderR = { x: bx + bw * 1.4, y: by + bh + 36 };
+      const spine = { x: neck.x, y: neck.y + 110 };
+
+      ctx.beginPath();
+      ctx.moveTo(neck.x, neck.y);
+      ctx.lineTo(neck.x, neck.y + 30);
+      ctx.moveTo(shoulderL.x, shoulderL.y);
+      ctx.lineTo(shoulderR.x, shoulderR.y);
+      ctx.moveTo(neck.x, neck.y + 30);
+      ctx.lineTo(spine.x, spine.y);
+      ctx.stroke();
+
+      [neck, shoulderL, shoulderR, spine].forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#10B981";
+        ctx.fill();
+      });
+
+      // Tab 3 Specific: Photoplethysmography (rPPG), Bio-Age estimation, and Anatomical Facial Morphing
+      if (isTab3) {
+        this.drawFaceRPPGandBioAge(ctx, bx, by, bw, bh, this.multiverseSliderVal, angle);
+        this.drawTargetedFacialMorph(ctx, w, h, {
+          bx, by, bw, bh,
+          rawX, rawY, rawW, rawH,
+          sentW, sentH, renderedW, renderedH,
+          offsetX, offsetY
+        }, this.lastLandmarks, this.multiverseSliderVal, this.isSplitView, angle);
+      }
+    } else if (this.isCameraActive && !this.lastFaceDetected) {
+      // Active scanning HUD when camera is on but no face is in view
+      const cx = w * 0.5;
+      const cy = h * 0.44;
+      const rad = Math.min(w, h) * 0.28;
+
+      // Subtle guide oval
+      ctx.save();
+      ctx.strokeStyle = isTab3 ? "rgba(56, 189, 248, 0.5)" : "rgba(239, 68, 68, 0.45)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rad * 0.75, rad, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Laser scan line
+      const scanY = cy - rad + (Math.sin(angle) * 0.5 + 0.5) * (rad * 2);
+      ctx.strokeStyle = isTab3 ? "rgba(56, 189, 248, 0.8)" : "rgba(239, 68, 68, 0.75)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - rad * 0.7, scanY);
+      ctx.lineTo(cx + rad * 0.7, scanY);
+      ctx.stroke();
+    } else {
+      if (!this.isCameraActive) {
+        // Idle decorative reticle on standby
+        const bx = w * 0.35 + Math.sin(angle) * 6;
+        const by = h * 0.22 + Math.cos(angle * 0.8) * 5;
+        const bw = w * 0.30;
+        const bh = h * 0.40;
+
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx, by, bw, bh);
+
+        ctx.save();
+        ctx.translate(bx + bw / 2, by - 6);
+        ctx.scale(-1, 1);
+        ctx.font = "10px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+        ctx.textAlign = "center";
+        ctx.fillText("[STANDBY: BẬT CAMERA ĐỂ QUÉT KHUÔN MẶT]", 0, 0);
+        ctx.restore();
+      }
+    }
+  }
+
+  /**
+   * Anatomical Facial Landmarks & rPPG Optical Sampling Reticles (Tab 3)
+   * Non-destructive: Does NOT alter skin tone or draw artificial dark circles/blush on the user.
+   * Keeps raw webcam stream 100% natural and transparent.
+   */
+  drawTargetedFacialMorph(ctx, w, h, box, landmarks, val, isSplit, angle) {
+    if (!ctx) return;
+
+    const mapX = (px) => (px / box.sentW) * box.renderedW + box.offsetX;
+    const mapY = (py) => (py / box.sentH) * box.renderedH + box.offsetY;
+
+    let eyeR = (landmarks && landmarks.right_eye) ? { x: mapX(landmarks.right_eye[0]), y: mapY(landmarks.right_eye[1]) } : null;
+    let eyeL = (landmarks && landmarks.left_eye) ? { x: mapX(landmarks.left_eye[0]), y: mapY(landmarks.left_eye[1]) } : null;
+    let nose = (landmarks && landmarks.nose) ? { x: mapX(landmarks.nose[0]), y: mapY(landmarks.nose[1]) } : null;
+    let mouthR = (landmarks && landmarks.right_mouth) ? { x: mapX(landmarks.right_mouth[0]), y: mapY(landmarks.right_mouth[1]) } : null;
+    let mouthL = (landmarks && landmarks.left_mouth) ? { x: mapX(landmarks.left_mouth[0]), y: mapY(landmarks.left_mouth[1]) } : null;
+
+    if (!eyeR) eyeR = { x: box.bx + box.bw * 0.33, y: box.by + box.bh * 0.38 };
+    if (!eyeL) eyeL = { x: box.bx + box.bw * 0.67, y: box.by + box.bh * 0.38 };
+    if (!nose) nose = { x: box.bx + box.bw * 0.50, y: box.by + box.bh * 0.54 };
+    if (!mouthR) mouthR = { x: box.bx + box.bw * 0.38, y: box.by + box.bh * 0.76 };
+    if (!mouthL) mouthL = { x: box.bx + box.bw * 0.62, y: box.by + box.bh * 0.76 };
+
+    // Draw subtle holographic landmark dots on genuine facial points
+    ctx.save();
+    const lms = [
+      { pt: eyeR, color: "#38BDF8", label: "R-EYE" },
+      { pt: eyeL, color: "#38BDF8", label: "L-EYE" },
+      { pt: nose, color: "#34D399", label: "NOSE" },
+      { pt: mouthR, color: "#FBBF24", label: "R-MOUTH" },
+      { pt: mouthL, color: "#FBBF24", label: "L-MOUTH" }
+    ];
+
+    lms.forEach(item => {
+      ctx.fillStyle = item.color;
+      ctx.shadowColor = item.color;
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(item.pt.x, item.pt.y, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Outer target ring
+      ctx.strokeStyle = item.color;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(item.pt.x, item.pt.y, 6.0, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // Subtly connect eyes & mouth contour with technical dashed line
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(eyeR.x, eyeR.y); ctx.lineTo(eyeL.x, eyeL.y);
+    ctx.moveTo(mouthR.x, mouthR.y); ctx.lineTo(mouthL.x, mouthL.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  /**
+   * Forehead & Cheek Optical Skin Sampling ROI Reticle (rPPG Telemetry)
+   * Shows user exactly where blood volume pulse (BVP) is optically extracted.
+   */
+  drawFaceRPPGandBioAge(ctx, bx, by, bw, bh, val, angle) {
+    if (!ctx) return;
+
+    // Forehead capillary skin perfusion sampling area
+    const roiX = bx + bw * 0.30;
+    const roiY = by + bh * 0.10;
+    const roiW = bw * 0.40;
+    const roiH = bh * 0.18;
+
+    ctx.save();
+    // Dashed Cyan Box for Optical Sampling Area
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(roiX, roiY, roiW, roiH);
+    ctx.setLineDash([]);
+
+    // Subtle corner brackets on ROI box
+    ctx.strokeStyle = "#38BDF8";
+    ctx.lineWidth = 2.0;
+    const clen = Math.min(8, roiW * 0.25);
+    // TL
+    ctx.beginPath(); ctx.moveTo(roiX, roiY + clen); ctx.lineTo(roiX, roiY); ctx.lineTo(roiX + clen, roiY); ctx.stroke();
+    // TR
+    ctx.beginPath(); ctx.moveTo(roiX + roiW - clen, roiY); ctx.lineTo(roiX + roiW, roiY); ctx.lineTo(roiX + roiW, roiY + clen); ctx.stroke();
+    // BL
+    ctx.beginPath(); ctx.moveTo(roiX, roiY + roiH - clen); ctx.lineTo(roiX, roiY + roiH); ctx.lineTo(roiX + clen, roiY + roiH); ctx.stroke();
+    // BR
+    ctx.beginPath(); ctx.moveTo(roiX + roiW - clen, roiY + roiH); ctx.lineTo(roiX + roiW, roiY + roiH); ctx.lineTo(roiX + roiW, roiY + roiH - clen); ctx.stroke();
+
+    // Pulse sensor chip pill attached above ROI
+    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+    const rppgTag = "rPPG OPTICAL ROI [G-CHANNEL]";
+    const tagW = ctx.measureText(rppgTag).width + 12;
+
+    ctx.translate(roiX + roiW / 2, roiY - 6);
+    ctx.scale(-1, 1);
+
+    ctx.fillStyle = "rgba(15, 23, 42, 0.90)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (typeof ctx.roundRect === "function") {
+      ctx.roundRect(-tagW / 2, -12, tagW, 14, 2);
+    } else {
+      ctx.rect(-tagW / 2, -12, tagW, 14);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#38BDF8";
+    ctx.textAlign = "center";
+    ctx.fillText(rppgTag, 0, -2);
+    ctx.restore();
+  }
+
+  syncLiveHUDStatusBadge(badgeId, textId, dotId, labelId) {
+    const hudBadge = document.getElementById(badgeId);
+    const hudText = document.getElementById(textId);
+    const hudDot = document.getElementById(dotId);
+    const hudLabel = document.getElementById(labelId);
+
+    if (!hudBadge) return;
+
+    if (this.isCameraActive) {
+      hudBadge.style.display = "flex";
+      if (this.lastFaceDetected) {
+        if (hudText) {
+          hudText.className = "badge badge-success";
+          hudText.style.background = "rgba(6, 78, 59, 0.92)";
+          hudText.style.border = "1px solid rgba(52, 211, 153, 0.75)";
+          hudText.style.color = "#D1FAE5";
+          hudText.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.35)";
+        }
+        if (hudDot) {
+          hudDot.style.background = "#10B981";
+          hudDot.style.boxShadow = "0 0 8px #10B981";
+        }
+        if (hudLabel) {
+          hudLabel.textContent = "[ĐÃ TÌM THẤY KHUÔN MẶT - ĐANG KHỚP CHUẨN]";
+        }
+      } else {
+        if (hudText) {
+          hudText.className = "badge badge-danger";
+          hudText.style.background = "rgba(127, 29, 29, 0.92)";
+          hudText.style.border = "1px solid rgba(248, 113, 113, 0.75)";
+          hudText.style.color = "#FEE2E2";
+          hudText.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.35)";
+        }
+        if (hudDot) {
+          hudDot.style.background = "#EF4444";
+          hudDot.style.boxShadow = "0 0 8px #EF4444";
+        }
+        if (hudLabel) {
+          hudLabel.textContent = "[ĐANG TÌM KHUÔN MẶT - VUI LÒNG HƯỚNG VÀO CAMERA]";
+        }
+      }
+    } else {
+      hudBadge.style.display = "none";
+    }
+  }
+
+  syncMultiversePostureIndicator() {
+    const postDot = document.getElementById("multiverse-ai-posture-dot");
+    const postText = document.getElementById("multiverse-ai-posture-text");
+    if (!postDot || !postText) return;
+
+    if (!this.isCameraActive) {
+      postDot.style.background = "#94A3B8";
+      postDot.style.boxShadow = "none";
+      postText.style.color = "#94A3B8";
+      postText.textContent = "AI TRẠNG THÁI: [CAMERA ĐANG TẮT] Bật camera để AI quét khuôn mặt & tư thế";
+    } else if (this.lastFaceDetected) {
+      const isAligned = Math.abs(this.headTilt) <= 12;
+      postDot.style.background = isAligned ? "#10B981" : "#F59E0B";
+      postDot.style.boxShadow = isAligned ? "0 0 8px #10B981" : "0 0 8px #F59E0B";
+      postText.style.color = isAligned ? "#34D399" : "#FBBF24";
+      if (isAligned) {
+        postText.textContent = `AI TRẠNG THÁI: [KHUÔN MẶT ĐÃ KHỚP] • Trục cổ C1-C7 thẳng chuẩn (Lệch ${Math.abs(this.headTilt)}°) • Sẵn sàng Chin Tuck`;
+      } else {
+        postText.textContent = `AI TRẠNG THÁI: [CẢNH BÁO TƯ THẾ] • Đầu đang nghiêng ${this.headTilt}° • Vui lòng giữ thẳng đầu vào khung xanh`;
+      }
+    } else {
+      postDot.style.background = "#EF4444";
+      postDot.style.boxShadow = "0 0 8px #EF4444";
+      postText.style.color = "#FCA5A5";
+      postText.textContent = "AI TRẠNG THÁI: [ĐANG TÌM KHUÔN MẶT] Vui lòng hướng mặt vào khung xanh trên camera";
     }
   }
 
   startCanvasHUDLoop() {
-    const canvas = document.getElementById("overlay-canvas");
-    const video = document.getElementById("webcam-video");
-    if (!canvas || !video) return;
-    const ctx = canvas.getContext("2d");
-
     let angle = 0;
     const render = () => {
-      if (canvas.parentElement) {
-        const pw = canvas.parentElement.clientWidth;
-        const ph = canvas.parentElement.clientHeight;
-        if (canvas.width !== pw || canvas.height !== ph) {
-          canvas.width = pw;
-          canvas.height = ph;
-        }
-      }
+      angle += 0.03;
+      const canvas1 = document.getElementById("overlay-canvas");
+      const video1 = document.getElementById("webcam-video");
+      const canvas3 = document.getElementById("multiverse-overlay-canvas");
+      const video3 = document.getElementById("multiverse-video");
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const w = canvas.width;
-      const h = canvas.height;
+      if (canvas1) this.drawFaceDetectionHUD(canvas1, video1, angle);
+      if (canvas3) this.drawFaceDetectionHUD(canvas3, video3, angle);
 
-      if (this.isCameraActive && this.lastFaceDetected && this.lastBbox) {
-        // Map sent frame coordinates to displayed canvas coordinates
-        const rawX = this.lastBbox[0];
-        const rawY = this.lastBbox[1];
-        const rawW = this.lastBbox[2];
-        const rawH = this.lastBbox[3];
+      // Synchronize Dynamic Non-Mirrored HTML Status Badges for Tab 1 and Tab 3
+      this.syncLiveHUDStatusBadge("camera-live-hud-badge", "camera-live-hud-text", "camera-live-hud-dot", "camera-live-hud-label");
+      this.syncLiveHUDStatusBadge("multiverse-live-hud-badge", "multiverse-live-hud-text", "multiverse-live-hud-dot", "multiverse-live-hud-label");
 
-        const sentW = this.lastFrameW || this.sentFrameWidth || 640;
-        const sentH = this.lastFrameH || this.sentFrameHeight || 480;
-
-        // Video dimensions
-        const vw = (video && video.videoWidth > 0) ? video.videoWidth : sentW;
-        const vh = (video && video.videoHeight > 0) ? video.videoHeight : sentH;
-
-        // Account for object-fit: cover scaling and cropping
-        const scale = Math.max(w / vw, h / vh);
-        const renderedW = vw * scale;
-        const renderedH = vh * scale;
-        const offsetX = (w - renderedW) / 2;
-        const offsetY = (h - renderedH) / 2;
-
-        // Position on displayed screen (overlay and video are both mirrored by CSS, so no double flip)
-        const uncalibratedBx = (rawX / sentW) * renderedW + offsetX;
-        const uncalibratedBy = (rawY / sentH) * renderedH + offsetY;
-        const uncalibratedBw = (rawW / sentW) * renderedW;
-        const uncalibratedBh = (rawH / sentH) * renderedH;
-
-        // Clamp bounding box to viewport to prevent clipping/overflow
-        const bx = Math.max(0, Math.min(uncalibratedBx, w - 10));
-        const by = Math.max(0, Math.min(uncalibratedBy, h - 10));
-        const bw = Math.max(10, Math.min(uncalibratedBw, w - bx));
-        const bh = Math.max(10, Math.min(uncalibratedBh, h - by));
-
-        // Bounding box border
-        ctx.strokeStyle = this.isSmiling ? "#059669" : "rgba(255, 255, 255, 0.4)";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(bx, by, bw, bh);
-
-        // Corner brackets (Green if smiling, Blue if neutral)
-        ctx.strokeStyle = this.isSmiling ? "#10B981" : "#0284C7";
-        ctx.lineWidth = 3;
-        const clen = Math.min(24, bw * 0.25);
-        // TL
-        ctx.beginPath(); ctx.moveTo(bx, by + clen); ctx.lineTo(bx, by); ctx.lineTo(bx + clen, by); ctx.stroke();
-        // TR
-        ctx.beginPath(); ctx.moveTo(bx + bw - clen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + clen); ctx.stroke();
-        // BL
-        ctx.beginPath(); ctx.moveTo(bx, by + bh - clen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + clen, by + bh); ctx.stroke();
-        // BR
-        ctx.beginPath(); ctx.moveTo(bx + bw - clen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - clen); ctx.stroke();
-
-        // Label above bbox (Un-mirrored for standard human reading, clamped inside viewport)
-        let labelText = "[KHUÔN MẶT ĐÃ KHỚP CHUẨN]";
-        let labelColor = "#34D399";
-        if (this.isSmiling) {
-          labelColor = "#10B981";
-          labelText = `[PHÁT HIỆN NỤ CƯỜI DUCHENNE: +${this.smileScore}%]`;
-        } else if (Math.abs(this.headTilt) > 14) {
-          labelColor = "#D97706";
-          labelText = `[CẢNH BÁO TƯ THẾ: LỆCH CỔ ${this.headTilt}°]`;
-        }
-
-        ctx.save();
-        ctx.font = "bold 11px 'JetBrains Mono', monospace";
-        const tw = ctx.measureText(labelText).width;
-        const lx = Math.max(0, Math.min(bx, w - tw - 4));
-        const ly = Math.max(14, by - 8);
-        ctx.translate(lx, ly);
-        ctx.scale(-1, 1);
-        ctx.textAlign = "right";
-        ctx.fillStyle = labelColor;
-        ctx.fillText(labelText, 0, 0);
-        ctx.restore();
-
-        // Draw dynamic posture skeleton from real face location
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.7)";
-        ctx.lineWidth = 2;
-        const neck = { x: bx + bw / 2, y: by + bh };
-        const shoulderL = { x: bx - bw * 0.4, y: by + bh + 40 };
-        const shoulderR = { x: bx + bw * 1.4, y: by + bh + 40 };
-        const spine = { x: neck.x, y: neck.y + 120 };
-
-        ctx.beginPath();
-        ctx.moveTo(neck.x, neck.y);
-        ctx.lineTo(neck.x, neck.y + 35);
-        ctx.moveTo(shoulderL.x, shoulderL.y);
-        ctx.lineTo(shoulderR.x, shoulderR.y);
-        ctx.moveTo(neck.x, neck.y + 35);
-        ctx.lineTo(spine.x, spine.y);
-        ctx.stroke();
-
-        [neck, shoulderL, shoulderR, spine].forEach(pt => {
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
-          ctx.fillStyle = this.isSmiling ? "#059669" : "#0284C7";
-          ctx.fill();
-        });
-      } else if (this.isCameraActive && !this.lastFaceDetected) {
-        // Active scanning HUD when camera is on but no face is in view
-        const cx = w * 0.5;
-        const cy = h * 0.44;
-        const rad = Math.min(w, h) * 0.28;
-        angle += 0.03;
-
-        // Subtle guide oval
-        ctx.save();
-        ctx.strokeStyle = "rgba(239, 68, 68, 0.45)";
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([6, 6]);
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, rad * 0.75, rad, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        // Laser scan line
-        const scanY = cy - rad + (Math.sin(angle) * 0.5 + 0.5) * (rad * 2);
-        ctx.strokeStyle = "rgba(239, 68, 68, 0.65)";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(cx - rad * 0.7, scanY);
-        ctx.lineTo(cx + rad * 0.7, scanY);
-        ctx.stroke();
-      } else {
-        if (!this.isCameraActive) {
-          // Idle decorative reticle
-          const bx = w * 0.35 + Math.sin(angle) * 6;
-          const by = h * 0.20 + Math.cos(angle * 0.8) * 5;
-          const bw = w * 0.30;
-          const bh = h * 0.42;
-          angle += 0.02;
-
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-          ctx.lineWidth = 1;
-          ctx.strokeRect(bx, by, bw, bh);
-
-          ctx.save();
-          ctx.translate(bx + bw / 2, by - 6);
-          ctx.scale(-1, 1);
-          ctx.font = "10px 'JetBrains Mono', monospace";
-          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-          ctx.textAlign = "center";
-          ctx.fillText("[STANDBY: NHẤN NÚT ĐỂ BẬT CAMERA]", 0, 0);
-          ctx.restore();
-        }
-      }
-
-      // Synchronize Dynamic Non-Mirrored HTML Status Badge (GREEN when face detected, RED when searching)
-      const hudBadge = document.getElementById("camera-live-hud-badge");
-      const hudText = document.getElementById("camera-live-hud-text");
-      const hudDot = document.getElementById("camera-live-hud-dot");
-      const hudLabel = document.getElementById("camera-live-hud-label");
-
-      if (this.isCameraActive) {
-        if (hudBadge) hudBadge.style.display = "flex";
-        if (this.lastFaceDetected) {
-          if (hudText) {
-            hudText.className = "badge badge-success";
-            hudText.style.background = "rgba(6, 78, 59, 0.92)";
-            hudText.style.border = "1px solid rgba(52, 211, 153, 0.75)";
-            hudText.style.color = "#D1FAE5";
-            hudText.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.35)";
-          }
-          if (hudDot) {
-            hudDot.style.background = "#10B981";
-            hudDot.style.boxShadow = "0 0 8px #10B981";
-          }
-          if (hudLabel) {
-            hudLabel.textContent = "[ĐÃ TÌM THẤY KHUÔN MẶT - ĐANG KHỚP CHUẨN]";
-          }
-        } else {
-          if (hudText) {
-            hudText.className = "badge badge-danger";
-            hudText.style.background = "rgba(127, 29, 29, 0.92)";
-            hudText.style.border = "1px solid rgba(248, 113, 113, 0.75)";
-            hudText.style.color = "#FEE2E2";
-            hudText.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.35)";
-          }
-          if (hudDot) {
-            hudDot.style.background = "#EF4444";
-            hudDot.style.boxShadow = "0 0 8px #EF4444";
-          }
-          if (hudLabel) {
-            hudLabel.textContent = "[ĐANG TÌM KHUÔN MẶT - VUI LÒNG HƯỚNG VÀO CAMERA]";
-          }
-        }
-      } else {
-        if (hudBadge) hudBadge.style.display = "none";
-      }
+      // Synchronize Tab 3 Chin Tuck AI Posture Live Strip
+      this.syncMultiversePostureIndicator();
 
       requestAnimationFrame(render);
     };
@@ -473,13 +730,32 @@ class ClinicalStationApp {
     offCanvas.width = this.sentFrameWidth;
     offCanvas.height = this.sentFrameHeight;
     const offCtx = offCanvas.getContext("2d");
-    const video = document.getElementById("webcam-video");
+    const video1 = document.getElementById("webcam-video");
+    const video3 = document.getElementById("multiverse-video");
 
     setInterval(() => {
       if (this.monitorWs && this.monitorWs.readyState === WebSocket.OPEN) {
-        if (this.isCameraActive && video && video.videoWidth > 0) {
-          // Send real camera frame to backend
-          offCtx.drawImage(video, 0, 0, 640, 480);
+        const tabForecast = document.getElementById("tab-forecast");
+        const isTab3 = tabForecast && tabForecast.classList.contains("active");
+        const activeVideo = (isTab3 && video3 && video3.videoWidth > 0)
+          ? video3
+          : ((video1 && video1.videoWidth > 0) ? video1 : (video3 && video3.videoWidth > 0 ? video3 : null));
+
+        if (this.isCameraActive && activeVideo && activeVideo.videoWidth > 0) {
+          // Adapt dynamically to true camera aspect ratio (prevents face squashing/distortion)
+          const vw = activeVideo.videoWidth;
+          const vh = activeVideo.videoHeight;
+          const targetW = 640;
+          const targetH = Math.round((targetW * vh) / vw);
+          if (offCanvas.width !== targetW || offCanvas.height !== targetH) {
+            offCanvas.width = targetW;
+            offCanvas.height = targetH;
+            this.sentFrameWidth = targetW;
+            this.sentFrameHeight = targetH;
+          }
+
+          // Send proportional camera frame to backend
+          offCtx.drawImage(activeVideo, 0, 0, targetW, targetH);
           const b64 = offCanvas.toDataURL("image/jpeg", 0.92);
           this.monitorWs.send(JSON.stringify({
             action: "monitor_frame",
@@ -510,6 +786,7 @@ class ClinicalStationApp {
 
     // Cache real detection results for canvas rendering
     this.lastBbox = data.bbox;
+    this.lastLandmarks = data.landmarks || null;
     this.lastFrameW = data.frame_w;
     this.lastFrameH = data.frame_h;
     this.lastFaceDetected = data.face_detected;
@@ -1439,84 +1716,407 @@ class ClinicalStationApp {
   }
 
   // -------------------------------------------------------------
-  // 7. Tab 3: Trajectory Forecasting & Prescriptions
+  // 7. Tab 3: Hospital ECG Telemetry Monitor & Affective Coupling
   // -------------------------------------------------------------
-  initTrajectoryChart() {
-    const canvas = document.getElementById("trajectory-canvas");
-    if (canvas) {
-      canvas.width = canvas.parentElement.clientWidth || 600;
-      canvas.height = 240;
+  setMultiverseSliderVal(val) {
+    this.multiverseSliderVal = typeof val === "number" ? val : 0.0;
+  }
+
+  initECGHospitalMonitor() {
+    this.ecgConfig = {
+      sweepX: 0,
+      sweepSpeed: 2.3,
+      currentBpm: 74,
+      targetBpm: 74,
+      hrv: 54,
+      rrInterval: 810,
+      rhythmStatus: "NHỊP XOANG BÌNH THƯỜNG",
+      soundEnabled: false
+    };
+
+    const soundBtn = document.getElementById("btn-toggle-ecg-sound");
+    if (soundBtn) {
+      soundBtn.addEventListener("click", () => {
+        this.ecgConfig.soundEnabled = !this.ecgConfig.soundEnabled;
+        if (this.ecgConfig.soundEnabled) {
+          soundBtn.innerHTML = "🔊 BÍP ECG: BẬT";
+          soundBtn.classList.add("btn-primary");
+          soundBtn.style.color = "#34D399";
+          soundBtn.style.borderColor = "#10B981";
+          this.playECGBeep(this.ecgConfig.currentBpm);
+        } else {
+          soundBtn.innerHTML = "🔇 BÍP ECG: TẮT";
+          soundBtn.classList.remove("btn-primary");
+          soundBtn.style.color = "";
+          soundBtn.style.borderColor = "";
+        }
+      });
+    }
+
+    this.startECGMonitorLoop();
+  }
+
+  initECGAudioContext() {
+    if (!this.ecgAudioCtx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ecgAudioCtx = new AudioCtx();
+    }
+    if (this.ecgAudioCtx && this.ecgAudioCtx.state === "suspended") {
+      this.ecgAudioCtx.resume();
     }
   }
 
-  renderTrajectoryChart() {
+  playECGBeep(bpm) {
+    if (!this.ecgConfig || !this.ecgConfig.soundEnabled) return;
+    try {
+      this.initECGAudioContext();
+      if (!this.ecgAudioCtx) return;
+
+      const now = this.ecgAudioCtx.currentTime;
+      const osc = this.ecgAudioCtx.createOscillator();
+      const gain = this.ecgAudioCtx.createGain();
+
+      const pitch = bpm > 98 ? 960 : (bpm < 65 ? 780 : 880);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(pitch, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+
+      osc.connect(gain);
+      gain.connect(this.ecgAudioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.06);
+    } catch (e) {
+      console.warn("[ECG AUDIO] Beep error:", e);
+    }
+  }
+
+  calculateECGSample(phase, valence, exhaustion) {
+    // Lead II ECG normalized wave (-0.4 to +1.25)
+    if (phase >= 0.12 && phase < 0.22) {
+      const p = (phase - 0.12) / 0.10;
+      return Math.sin(p * Math.PI) * 0.14;
+    }
+    if (phase >= 0.22 && phase < 0.32) return 0.0;
+    if (phase >= 0.32 && phase < 0.35) {
+      const q = (phase - 0.32) / 0.03;
+      return -Math.sin(q * Math.PI) * 0.15;
+    }
+    if (phase >= 0.35 && phase < 0.39) {
+      const r = (phase - 0.35) / 0.04;
+      return Math.sin(r * Math.PI) * 1.25;
+    }
+    if (phase >= 0.39 && phase < 0.43) {
+      const s = (phase - 0.39) / 0.04;
+      return -Math.sin(s * Math.PI) * 0.38;
+    }
+    if (phase >= 0.43 && phase < 0.50) {
+      return (exhaustion >= 3) ? -0.05 : 0.01;
+    }
+    if (phase >= 0.50 && phase < 0.68) {
+      const t = (phase - 0.50) / 0.18;
+      const tAmp = 0.28 + (valence > 0 ? 0.06 : -0.06);
+      return Math.sin(t * Math.PI) * tAmp;
+    }
+    return 0.0;
+  }
+
+  calculatePlethSample(phase, arousal) {
+    if (phase < 0.15) return 0.0;
+    if (phase >= 0.15 && phase < 0.35) {
+      const rise = (phase - 0.15) / 0.20;
+      return Math.sin(rise * Math.PI * 0.5);
+    }
+    if (phase >= 0.35 && phase < 0.52) {
+      const decay = (phase - 0.35) / 0.17;
+      return 1.0 - decay * 0.45;
+    }
+    if (phase >= 0.52 && phase < 0.68) {
+      const notch = (phase - 0.52) / 0.16;
+      return 0.55 + Math.sin(notch * Math.PI) * 0.16;
+    }
+    const runoff = (phase - 0.68) / 0.32;
+    return 0.55 * Math.cos(runoff * Math.PI * 0.5);
+  }
+
+  startECGMonitorLoop() {
+    // If multiverseSim is initialized, waveform monitor is managed by the dedicated rPPG engine in multiverse.js
+    if (window.multiverseSim && typeof window.multiverseSim.initWaveformMonitor === "function") {
+      return;
+    }
     const canvas = document.getElementById("trajectory-canvas");
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width;
-    const h = canvas.height;
 
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, w, h);
+    let cardiacPhase = 0.0;
+    let sweepX = 0;
+    let lastTime = performance.now();
+    let hasBeepedThisBeat = false;
+    let buffer = [];
 
-    // Grid lines & Zero-line
-    ctx.strokeStyle = "#F1F5F9";
-    ctx.lineWidth = 1;
-    for (let y = 30; y < h; y += 40) {
+    const render = (now) => {
+      // 1. Sync canvas resolution with display width
+      if (canvas.parentElement) {
+        const pw = canvas.parentElement.clientWidth || 600;
+        const ph = 220;
+        if (canvas.width !== pw || canvas.height !== ph) {
+          canvas.width = pw;
+          canvas.height = ph;
+          buffer = new Array(pw).fill(null);
+        }
+      }
+      const w = canvas.width;
+      const h = canvas.height;
+      if (w === 0 || h === 0) {
+        requestAnimationFrame(render);
+        return;
+      }
+
+      const ctx = canvas.getContext("2d");
+
+      // 2. Compute dynamic heart rate modulated by emotion & multiverse timeline
+      const val = (this.currentBiometrics && typeof this.currentBiometrics.valence === "number") 
+        ? this.currentBiometrics.valence : 0.0;
+      const exLevel = (this.currentBiometrics && typeof this.currentBiometrics.mental_exhaustion_level === "number") 
+        ? this.currentBiometrics.mental_exhaustion_level : 1;
+      const slider = typeof this.multiverseSliderVal === "number" ? this.multiverseSliderVal : 0.0;
+
+      let targetBpm = 72;
+      targetBpm -= val * 10;
+      targetBpm += exLevel * 3;
+
+      if (slider < -0.01) {
+        targetBpm += Math.abs(slider) * 32; // Tachycardia under burnout
+      } else if (slider > 0.01) {
+        targetBpm -= slider * 10; // Restful coherence under vitality
+      }
+      targetBpm = Math.max(52, Math.min(130, targetBpm));
+
+      this.ecgConfig.currentBpm += (targetBpm - this.ecgConfig.currentBpm) * 0.04;
+      const bpm = Math.round(this.ecgConfig.currentBpm);
+      const rr = Math.round(60000 / bpm);
+      const hrv = Math.max(22, Math.min(76, Math.round(55 + val * 16 - (slider < 0 ? 18 : -8))));
+
+      let rhythm = "NHỊP XOANG BÌNH THƯỜNG";
+      if (bpm >= 100) rhythm = "SINUS TACHYCARDIA (KIỆT SỨC)";
+      else if (bpm <= 60) rhythm = "SINUS BRADYCARDIA (NGHỈ SÂU)";
+      else if (this.isSmiling) rhythm = "NHỊP XOANG THĂNG HOA (DUCHENNE)";
+
+      // 3. Advance cardiac phase
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+      const beatPeriodSec = 60 / this.ecgConfig.currentBpm;
+      cardiacPhase = (cardiacPhase + dt / beatPeriodSec) % 1.0;
+
+      // Detect R-peak for audio beep & pulse animation
+      if (cardiacPhase >= 0.35 && cardiacPhase < 0.40) {
+        if (!hasBeepedThisBeat) {
+          this.playECGBeep(bpm);
+          hasBeepedThisBeat = true;
+        }
+      } else if (cardiacPhase > 0.48) {
+        hasBeepedThisBeat = false;
+      }
+
+      // 4. Update sweep buffer
+      const step = Math.max(1, Math.round(this.ecgConfig.sweepSpeed));
+      for (let s = 0; s < step; s++) {
+        const curX = Math.floor(sweepX);
+        const ecgVal = this.calculateECGSample(cardiacPhase, val, exLevel);
+        const plethVal = this.calculatePlethSample(cardiacPhase, 0.4);
+        buffer[curX] = { ecg: ecgVal, pleth: plethVal };
+
+        // Erase blanking gap ahead of scan beam (24px wide)
+        for (let g = 1; g <= 24; g++) {
+          buffer[(curX + g) % w] = null;
+        }
+        sweepX = (sweepX + 1) % w;
+      }
+
+      // 5. Draw Medical Display Background
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, w, h);
+
+      // 6. Draw Clinical Millimeter Grid
+      ctx.save();
+      // Minor Grid (8px)
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.06)";
+      ctx.lineWidth = 0.6;
       ctx.beginPath();
-      ctx.moveTo(40, y);
-      ctx.lineTo(w - 20, y);
+      for (let x = 0; x < w; x += 8) {
+        ctx.moveTo(x, 0); ctx.lineTo(x, h);
+      }
+      for (let y = 0; y < h; y += 8) {
+        ctx.moveTo(0, y); ctx.lineTo(w, y);
+      }
       ctx.stroke();
-    }
 
-    // Baseline Valence = 0.0 (middle)
-    const midY = h / 2;
-    ctx.strokeStyle = "#CBD5E1";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(40, midY);
-    ctx.lineTo(w - 20, midY);
-    ctx.stroke();
+      // Major Grid (40px)
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.18)";
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += 40) {
+        ctx.moveTo(x, 0); ctx.lineTo(x, h);
+      }
+      for (let y = 0; y < h; y += 40) {
+        ctx.moveTo(0, y); ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+      ctx.restore();
 
-    ctx.font = "9px 'JetBrains Mono', monospace";
-    ctx.fillStyle = "#94A3B8";
-    ctx.fillText("+1.0 (TÍCH CỰC)", 45, 20);
-    ctx.fillText(" 0.0 (CÂN BẰNG)", 45, midY - 4);
-    ctx.fillText("-1.0 (TRẦM LẮNG)", 45, h - 10);
+      // 7. Base levels for Dual Channels
+      const yMid1 = h * 0.32; // Channel 1: Lead II ECG
+      const yMid2 = h * 0.74; // Channel 2: Pleth Pulse
+      const amp1 = h * 0.22;
+      const amp2 = h * 0.17;
 
-    if (this.trajectoryHistory.length < 2) return;
+      // Draw channel baselines
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.12)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, yMid1); ctx.lineTo(w, yMid1);
+      ctx.moveTo(0, yMid2); ctx.lineTo(w, yMid2);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-    const n = this.trajectoryHistory.length;
-    const stepX = (w - 70) / (this.maxTrajectoryPoints - 1);
+      // 8. Draw Channel 1: Lead II ECG Waveform (Glowing Green)
+      ctx.save();
+      ctx.strokeStyle = "#10B981";
+      ctx.shadowColor = "#10B981";
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 2.0;
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      let started1 = false;
+      for (let x = 0; x < w; x++) {
+        const pt = buffer[x];
+        if (pt && typeof pt.ecg === "number") {
+          const py = yMid1 - pt.ecg * amp1;
+          if (!started1) {
+            ctx.moveTo(x, py);
+            started1 = true;
+          } else {
+            ctx.lineTo(x, py);
+          }
+        } else {
+          started1 = false;
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
 
-    // Draw Valence Trajectory (Clinical Blue)
-    ctx.beginPath();
-    ctx.strokeStyle = "#0284C7";
-    ctx.lineWidth = 2.5;
+      // 9. Draw Channel 2: Pleth Arousal Waveform (Glowing Cyan)
+      ctx.save();
+      ctx.strokeStyle = "#06B6D4";
+      ctx.shadowColor = "#06B6D4";
+      ctx.shadowBlur = 6;
+      ctx.lineWidth = 1.8;
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      let started2 = false;
+      for (let x = 0; x < w; x++) {
+        const pt = buffer[x];
+        if (pt && typeof pt.pleth === "number") {
+          const py = yMid2 - (pt.pleth - 0.45) * amp2;
+          if (!started2) {
+            ctx.moveTo(x, py);
+            started2 = true;
+          } else {
+            ctx.lineTo(x, py);
+          }
+        } else {
+          started2 = false;
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
 
-    this.trajectoryHistory.forEach((pt, i) => {
-      const x = 50 + i * stepX;
-      const y = midY - (pt.valence * (midY - 35));
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
+      // 10. Draw Sweep Beam (Scanning Cursor Head)
+      const headX = Math.floor(sweepX);
+      const sweepGrad = ctx.createLinearGradient(Math.max(0, headX - 18), 0, headX, 0);
+      sweepGrad.addColorStop(0, "rgba(16, 185, 129, 0)");
+      sweepGrad.addColorStop(1, "rgba(52, 211, 153, 0.45)");
+      ctx.fillStyle = sweepGrad;
+      ctx.fillRect(Math.max(0, headX - 18), 0, 18, h);
 
-    // Draw Arousal Trajectory (Dashed Slate)
-    ctx.beginPath();
-    ctx.setLineDash([4, 3]);
-    ctx.strokeStyle = "#64748B";
-    ctx.lineWidth = 1.5;
+      // Cursor vertical hairline
+      ctx.strokeStyle = "rgba(52, 211, 153, 0.85)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(headX, 0);
+      ctx.lineTo(headX, h);
+      ctx.stroke();
 
-    this.trajectoryHistory.forEach((pt, i) => {
-      const x = 50 + i * stepX;
-      const y = midY - (pt.arousal * (midY - 35));
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-    ctx.setLineDash([]);
+      // Leading Glowing Dots on both waves
+      const curSample = buffer[headX] || { ecg: 0, pleth: 0 };
+      const dot1Y = yMid1 - (curSample.ecg || 0) * amp1;
+      const dot2Y = yMid2 - ((curSample.pleth || 0.45) - 0.45) * amp2;
+
+      ctx.save();
+      ctx.fillStyle = "#34D399";
+      ctx.shadowColor = "#34D399";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(headX, dot1Y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#38BDF8";
+      ctx.shadowColor = "#38BDF8";
+      ctx.beginPath();
+      ctx.arc(headX, dot2Y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 11. On-Screen Medical Telemetry Text
+      ctx.save();
+      ctx.font = "bold 9.5px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#34D399";
+      ctx.fillText("ECG LEAD II • 25mm/s • 10mm/mV • GAIN: 1.0x", 12, 18);
+
+      ctx.fillStyle = "#38BDF8";
+      ctx.fillText("PLETH / AROUSAL PULSE WAVE (SPO2 EQUIV)", 12, h * 0.54);
+
+      // Heart Icon & Digital BPM (Top Right)
+      const isBeating = (cardiacPhase >= 0.35 && cardiacPhase < 0.42);
+      const bpmColor = bpm > 98 ? "#EF4444" : (bpm < 60 ? "#38BDF8" : "#34D399");
+
+      ctx.textAlign = "right";
+      ctx.font = "bold 13px 'JetBrains Mono', monospace";
+      ctx.fillStyle = bpmColor;
+      ctx.fillText(`HR: ${bpm} BPM`, w - 12, 19);
+
+      ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#94A3B8";
+      ctx.fillText(`R-R: ${rr}ms  HRV: ${hrv}ms`, w - 12, 33);
+      ctx.restore();
+
+      // 12. Synchronize HTML UI elements
+      const hrDisplay = document.getElementById("ecg-hr-display");
+      const metricBpm = document.getElementById("ecg-metric-bpm");
+      const metricHrv = document.getElementById("ecg-metric-hrv");
+      const metricRr = document.getElementById("ecg-metric-rr");
+      const metricRhythm = document.getElementById("ecg-metric-rhythm");
+
+      if (hrDisplay) hrDisplay.textContent = `❤️ HR: ${bpm} BPM`;
+      if (metricBpm) metricBpm.innerHTML = `${bpm} <span style="font-size:0.62rem; font-weight:400; color:var(--text-muted);">BPM</span>`;
+      if (metricHrv) metricHrv.innerHTML = `${hrv} <span style="font-size:0.62rem; font-weight:400; color:var(--text-muted);">ms</span>`;
+      if (metricRr) metricRr.innerHTML = `${rr} <span style="font-size:0.62rem; font-weight:400; color:var(--text-muted);">ms</span>`;
+      if (metricRhythm) {
+        metricRhythm.textContent = rhythm;
+        metricRhythm.style.color = bpm > 98 ? "#EF4444" : "#34D399";
+      }
+
+      requestAnimationFrame(render);
+    };
+
+    requestAnimationFrame(render);
+  }
+
+  renderTrajectoryChart() {
+    // Backward compatibility hook: ECG Monitor renders continuously
   }
 
   updateBurnoutRiskIndex() {
@@ -1539,6 +2139,14 @@ class ClinicalStationApp {
       else riskBadge.className = "badge badge-success";
     }
     if (riskBar) riskBar.style.width = `${riskPct}%`;
+
+    // Sync to Future Multiverse Engine
+    if (window.multiverseSim) {
+      window.multiverseSim.burnoutIndex = riskPct;
+      if (window.multiverseSim.sliderValue === 0) {
+        window.multiverseSim.updateBurnoutDisplay(riskPct);
+      }
+    }
   }
 
   bindEvents() {
@@ -1546,6 +2154,11 @@ class ClinicalStationApp {
     const camToggle = document.getElementById("webcam-toggle-btn");
     if (camToggle) {
       camToggle.addEventListener("click", () => this.toggleCamera());
+    }
+
+    const multiCamToggle = document.getElementById("multiverse-cam-toggle-btn");
+    if (multiCamToggle) {
+      multiCamToggle.addEventListener("click", () => this.toggleCamera());
     }
 
     const camStartOverlay = document.getElementById("btn-start-camera-overlay");

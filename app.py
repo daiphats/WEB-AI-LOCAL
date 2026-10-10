@@ -487,6 +487,7 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
 
                 pred["face_detected"] = analysis["face_detected"]
                 pred["bbox"] = analysis["bbox"]
+                pred["landmarks"] = analysis.get("landmarks")
                 pred["frame_w"] = analysis.get("frame_w")
                 pred["frame_h"] = analysis.get("frame_h")
                 pred["is_smiling"] = analysis["is_smiling"]

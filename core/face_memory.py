@@ -475,39 +475,36 @@ class FaceMemoryManager:
             is_smiling = False
             smile_score = 0.0
 
-        # Clinical state deduction from real facial biomarkers
-        is_surprised = (r_jaw >= 0.82)
+        # Clinical state deduction from genuine facial biomarkers
+        is_surprised = (r_jaw >= 0.84)
+        is_tilted = abs(head_tilt) > 18.0
+        is_slumped = (y + fh) > int(h * 0.96) and (y > int(h * 0.40))
+        posture_warn = is_tilted or is_slumped
+
+        # Check for genuine depressed mouth biomarker (lip corners pulled downward)
+        is_depressed_mouth = (r_smile_morph < 0.95 and r_width < 0.72)
 
         if is_smiling:
             emotion = "HAPPY / EQUILIBRIUM"
             valence = round(0.55 + (smile_score / 100.0) * 0.35, 2)
             arousal = 0.35
             exhaustion = 0
-            posture_warn = False
         elif is_surprised:
             emotion = "SURPRISE"
             valence = 0.25
             arousal = 0.75
             exhaustion = 1
-            posture_warn = False
-        elif abs(head_tilt) > 16.0:
-            emotion = "FEAR / ANXIETY"
-            valence = -0.28
-            arousal = 0.45
-            exhaustion = 2
-            posture_warn = True
-        elif (y + fh) > int(h * 0.92): # User head slumped down near viewport bottom
+        elif is_depressed_mouth:
             emotion = "SAD / DEPRESSIVE"
             valence = -0.42
             arousal = -0.20
             exhaustion = 3
-            posture_warn = True
         else:
+            # 100% genuine resting state defaults to NEUTRAL / CALM
             emotion = "NEUTRAL / CALM"
-            valence = 0.10
-            arousal = -0.05
-            exhaustion = 1
-            posture_warn = False
+            valence = 0.12
+            arousal = 0.00
+            exhaustion = 2 if posture_warn else 1
 
         return {
             "face_detected": True,
