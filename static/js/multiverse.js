@@ -112,12 +112,12 @@ class NeuroAvatarRenderer {
       }
     }
 
-    // Clear background with dark cyberpunk radial gradient
+    // Clear background with clean light radial gradient
     ctx.clearRect(0, 0, w, h);
     const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.44, 20, w * 0.5, h * 0.5, w * 0.72);
-    bgGrad.addColorStop(0.0, "#081326");
-    bgGrad.addColorStop(0.55, "#030816");
-    bgGrad.addColorStop(1.0, "#01040D");
+    bgGrad.addColorStop(0.0, "#FFFFFF");
+    bgGrad.addColorStop(0.55, "#F8FAFC");
+    bgGrad.addColorStop(1.0, "#F1F5F9");
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
@@ -194,7 +194,7 @@ class NeuroAvatarRenderer {
 
   drawBackgroundGrid(ctx, w, h) {
     ctx.save();
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.05)";
+    ctx.strokeStyle = "rgba(2, 132, 199, 0.07)";
     ctx.lineWidth = 0.8;
     const step = 32;
     ctx.beginPath();
@@ -207,7 +207,7 @@ class NeuroAvatarRenderer {
     ctx.stroke();
 
     // Radar concentric rings
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.07)";
+    ctx.strokeStyle = "rgba(2, 132, 199, 0.10)";
     ctx.beginPath();
     ctx.arc(w * 0.5, h * 0.46, Math.min(w, h) * 0.38, 0, Math.PI * 2);
     ctx.arc(w * 0.5, h * 0.46, Math.min(w, h) * 0.22, 0, Math.PI * 2);
@@ -610,7 +610,7 @@ class NeuroAvatarRenderer {
     const px = 14;
     const py = h - 16;
 
-    ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
     ctx.strokeStyle = accent;
     ctx.lineWidth = 1.0;
     ctx.beginPath();
@@ -1683,7 +1683,7 @@ class FutureMultiverseSimulation {
       }
 
       // 1. Draw canvas background
-      ctx.fillStyle = "#020617";
+      ctx.fillStyle = "#FFFFFF";
       ctx.fillRect(0, 0, w, h);
 
       // 2. Medical millimeter grid
@@ -1693,7 +1693,7 @@ class FutureMultiverseSimulation {
       const yMid = h * 0.52;
       const amp = h * 0.38;
 
-      ctx.strokeStyle = "rgba(6, 182, 212, 0.16)";
+      ctx.strokeStyle = "rgba(203, 213, 225, 0.6)";
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 4]);
       ctx.beginPath();
@@ -1701,11 +1701,11 @@ class FutureMultiverseSimulation {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // 4. Draw Optical rPPG Pulse Wave (Luminous Cyan)
+      // 4. Draw Optical rPPG Pulse Wave (Clinical Emerald / Cyan)
       ctx.save();
-      ctx.strokeStyle = hasValidSignal ? "#06B6D4" : "rgba(6, 182, 212, 0.45)";
-      ctx.shadowColor = "#06B6D4";
-      ctx.shadowBlur = hasValidSignal ? 8 : 0;
+      ctx.strokeStyle = hasValidSignal ? "#059669" : "#0284C7";
+      ctx.shadowColor = hasValidSignal ? "rgba(5, 150, 105, 0.35)" : "rgba(2, 132, 199, 0.35)";
+      ctx.shadowBlur = hasValidSignal ? 6 : 0;
       ctx.lineWidth = 2.2;
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
@@ -1730,16 +1730,16 @@ class FutureMultiverseSimulation {
       // 5. Sweep Beam Head with glow scan line
       const headX = Math.floor(sweepX);
       ctx.save();
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
+      ctx.strokeStyle = "rgba(2, 132, 199, 0.5)";
       ctx.lineWidth = 1.4;
       ctx.beginPath();
       ctx.moveTo(headX, 0); ctx.lineTo(headX, h);
       ctx.stroke();
 
       // Sweep dot indicator
-      ctx.fillStyle = "#38BDF8";
-      ctx.shadowColor = "#38BDF8";
-      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#0284C7";
+      ctx.shadowColor = "rgba(2, 132, 199, 0.5)";
+      ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(headX, lastValidY, 3.5, 0, Math.PI * 2);
       ctx.fill();
@@ -1748,20 +1748,20 @@ class FutureMultiverseSimulation {
       // 6. Medical Clinical Header Annotations (Pure rPPG Optical Telemetry)
       ctx.save();
       ctx.font = "bold 9px 'JetBrains Mono', monospace";
-      ctx.fillStyle = "#38BDF8";
+      ctx.fillStyle = "#0284C7";
       ctx.fillText("rPPG OPTICAL PULSE SIGNAL (SÓNG QUANG HỌC VÙNG TRÁN WEBCAM)", 14, 20);
 
       ctx.font = "8.5px 'JetBrains Mono', monospace";
-      ctx.fillStyle = hasValidSignal ? "#34D399" : "#94A3B8";
+      ctx.fillStyle = hasValidSignal ? "#059669" : "#64748B";
       ctx.fillText(`CHẤT LƯỢNG TÍN HIỆU: ${hasValidSignal ? "CHUẨN XÁC [SIGNAL GOOD]" : "ĐANG CÂN BẰNG TÍN HIỆU..."}`, 14, 34);
 
       ctx.textAlign = "right";
       ctx.font = "bold 13px 'JetBrains Mono', monospace";
       if (hasValidSignal) {
-        ctx.fillStyle = "#10B981";
+        ctx.fillStyle = "#059669";
         ctx.fillText(`HR: ${currentBpm} BPM`, w - 14, 20);
         ctx.font = "9px 'JetBrains Mono', monospace";
-        ctx.fillStyle = "#38BDF8";
+        ctx.fillStyle = "#0284C7";
         ctx.fillText(`HRV: ${telem.hrv}ms • R-R: ${telem.rr}ms`, w - 14, 34);
       } else {
         ctx.fillStyle = "#94A3B8";
@@ -1781,14 +1781,14 @@ class FutureMultiverseSimulation {
 
   drawMedicalGrid(ctx, w, h) {
     ctx.save();
-    ctx.strokeStyle = "rgba(16, 185, 129, 0.05)";
+    ctx.strokeStyle = "rgba(2, 132, 199, 0.05)";
     ctx.lineWidth = 0.5;
     ctx.beginPath();
     for (let x = 0; x < w; x += 8) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
     for (let y = 0; y < h; y += 8) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
     ctx.stroke();
 
-    ctx.strokeStyle = "rgba(16, 185, 129, 0.15)";
+    ctx.strokeStyle = "rgba(2, 132, 199, 0.12)";
     ctx.lineWidth = 0.9;
     ctx.beginPath();
     for (let x = 0; x < w; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
