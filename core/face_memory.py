@@ -577,7 +577,7 @@ class FaceMemoryManager:
                 "authenticated": True,
                 "score": 100.0,
                 "threshold": config.BIOMETRIC_MATCH_THRESHOLD * 100,
-                "message": "[PRIMARY ADMIN BIOMETRIC ENROLLED & AUTHENTICATED]"
+                "message": "Đã lưu sinh trắc học và xác thực quản trị viên thành công"
             }
 
         effective_score = max(score, best_id_score)
@@ -585,12 +585,12 @@ class FaceMemoryManager:
         effective_pct = round(effective_score * 100, 1)
         authenticated = effective_score >= config.BIOMETRIC_MATCH_THRESHOLD
 
-        who = best_id_name if (best_id_name and best_id_score > score) else "PRIMARY_ADMINISTRATOR"
+        who = best_id_name if (best_id_name and best_id_score > score) else "Quản trị viên"
 
         if authenticated:
-            msg = f"[XÁC THỰC THÀNH CÔNG: {who}]"
+            msg = f"Xác thực thành công: {who}"
         else:
-            msg = f"[TỪ CHỐI TRUY CẬP: ĐỘ KHỚP {effective_pct}% < NGƯỠNG {threshold_pct}%]"
+            msg = f"Từ chối truy cập: Độ khớp {effective_pct}% (yêu cầu ≥ {threshold_pct}%)"
 
         return {
             "authenticated": authenticated,

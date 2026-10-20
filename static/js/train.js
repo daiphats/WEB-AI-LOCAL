@@ -40,25 +40,25 @@ class TrainingStudioManager {
     const iconBadge = document.getElementById("web-modal-icon-badge");
     const closeBtn = document.getElementById("web-modal-close-btn");
 
-    if (titleEl) titleEl.textContent = title || "CẢNH BÁO HỆ THỐNG";
+    if (titleEl) titleEl.textContent = title || "Thông báo hệ thống";
     if (bodyEl) bodyEl.textContent = message || "";
 
     if (iconBadge) {
       if (type === "danger" || type === "error") {
         iconBadge.className = "badge badge-danger";
-        iconBadge.textContent = "[CẢNH BÁO]";
-        iconBadge.style.background = "rgba(239, 68, 68, 0.25)";
-        iconBadge.style.color = "#F87171";
+        iconBadge.textContent = "Cảnh báo";
+        iconBadge.style.background = "rgba(239, 68, 68, 0.15)";
+        iconBadge.style.color = "var(--accent-danger)";
       } else if (type === "success") {
         iconBadge.className = "badge badge-success";
-        iconBadge.textContent = "[THÀNH CÔNG]";
-        iconBadge.style.background = "rgba(16, 185, 129, 0.25)";
-        iconBadge.style.color = "#34D399";
+        iconBadge.textContent = "Thành công";
+        iconBadge.style.background = "rgba(5, 150, 105, 0.15)";
+        iconBadge.style.color = "var(--accent-success)";
       } else {
         iconBadge.className = "badge badge-warning";
-        iconBadge.textContent = "[LƯU Ý]";
-        iconBadge.style.background = "rgba(245, 158, 11, 0.25)";
-        iconBadge.style.color = "#FBBF24";
+        iconBadge.textContent = "Lưu ý";
+        iconBadge.style.background = "rgba(217, 119, 6, 0.15)";
+        iconBadge.style.color = "var(--accent-warning)";
       }
     }
 
@@ -96,9 +96,9 @@ class TrainingStudioManager {
       const statusEl = document.getElementById("gate-status-badge");
       if (statusEl) {
         if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-          statusEl.textContent = "[TRÌNH DUYỆT CHẶN CAM QUA HTTP LAN: DÙNG LOCALHOST HOẶC HTTPS]";
+          statusEl.textContent = "Trình duyệt chặn camera qua mạng LAN. Vui lòng truy cập qua localhost hoặc HTTPS.";
         } else {
-          statusEl.textContent = "[CAMERA BỊ CHẶN HOẶC ĐANG BẬN: VUI LÒNG CẤP QUYỀN]";
+          statusEl.textContent = "Camera bị chặn hoặc đang bận. Vui lòng cấp quyền truy cập webcam.";
         }
         statusEl.className = "badge badge-warning";
       }
@@ -111,12 +111,12 @@ class TrainingStudioManager {
     const scoreEl = document.getElementById("gate-score-metric");
 
     if (!video || !video.videoWidth) {
-      if (statusEl) statusEl.textContent = "[WAITING FOR CAMERA SIGNAL]";
+      if (statusEl) statusEl.textContent = "Đang chờ tín hiệu camera...";
       return;
     }
 
     if (statusEl) {
-      statusEl.textContent = "[ANALYZING RESNET50 BIOMETRIC VECTOR...]";
+      statusEl.textContent = "Đang phân tích vector sinh trắc học...";
       statusEl.className = "badge badge-clinical";
     }
 
@@ -135,7 +135,7 @@ class TrainingStudioManager {
       });
       const data = await res.json();
 
-      if (scoreEl) scoreEl.textContent = `COSINE SIMILARITY: ${data.score}% / NGƯỠNG ${data.threshold}%`;
+      if (scoreEl) scoreEl.textContent = `Độ tương đồng Cosine: ${data.score}% / Ngưỡng đạt ${data.threshold}%`;
 
       if (data.authenticated) {
         if (statusEl) {
@@ -153,7 +153,7 @@ class TrainingStudioManager {
     } catch (err) {
       console.error("[GATE] Verification error:", err);
       if (statusEl) {
-        statusEl.textContent = "[NETWORK/BIOMETRIC ERROR]";
+        statusEl.textContent = "Lỗi kết nối hoặc xử lý sinh trắc học";
         statusEl.className = "badge badge-danger";
       }
     }
@@ -162,7 +162,7 @@ class TrainingStudioManager {
   async enrollCurrentFaceAsAdmin() {
     const video = document.getElementById("gate-video");
     if (!video || !video.videoWidth) {
-      this.showWebModal("[CẢNH BÁO]", "Cần mở camera để chụp khuôn mặt Admin.", "warning");
+      this.showWebModal("Cảnh báo", "Cần mở camera để chụp khuôn mặt Quản trị viên.", "warning");
       return;
     }
 
@@ -180,10 +180,10 @@ class TrainingStudioManager {
         body: JSON.stringify({ image_b64: b64 })
       });
       const data = await res.json();
-      this.showWebModal(data.success ? "[THÀNH CÔNG]" : "[THẤT BẠI]", data.message, data.success ? "success" : "danger");
+      this.showWebModal(data.success ? "Thành công" : "Thất bại", data.message, data.success ? "success" : "danger");
       this.scanGateBiometrics();
     } catch (err) {
-      this.showWebModal("[LỖI ĐĂNG KÝ]", "Đăng ký Admin thất bại: " + err, "danger");
+      this.showWebModal("Lỗi đăng ký", "Đăng ký Quản trị viên thất bại: " + err, "danger");
     }
   }
 
@@ -311,10 +311,10 @@ class TrainingStudioManager {
 
     const terminal = document.getElementById("train-terminal");
     if (terminal) {
-      terminal.textContent = `[PYTORCH GMU TRAINING INITIATED]\n` +
-        `DEVICE: PyTorch on Localhost\n` +
-        `CONFIG: Epochs=${epochs}, BatchSize=${batchSize}, LR=${lr}, Dropout=${dropout}\n` +
-        `CONNECTING WEBSOCKET STREAM...\n\n`;
+      terminal.textContent = `Khởi tạo huấn luyện PyTorch GMU...\n` +
+        `Thiết bị: PyTorch trên Localhost\n` +
+        `Cấu hình: Epochs=${epochs}, BatchSize=${batchSize}, LR=${lr}, Dropout=${dropout}\n` +
+        `Đang kết nối luồng dữ liệu WebSocket...\n\n`;
     }
 
     const startBtn = document.getElementById("initiate-train-btn");
@@ -326,7 +326,7 @@ class TrainingStudioManager {
     this.trainWs = new WebSocket(wsUrl);
 
     this.trainWs.onopen = () => {
-      this.logTerminal("[WEBSOCKET CONNECTED: STREAMING REAL-TIME GRADIENTS]");
+      this.logTerminal("WebSocket đã kết nối: Đang truyền dữ liệu gradient thời gian thực...");
       this.trainWs.send(JSON.stringify({
         action: "start_train",
         epochs: epochs,
@@ -343,27 +343,27 @@ class TrainingStudioManager {
         this.trainHistory.push(ep);
         this.updateChart();
         this.logTerminal(
-          `[EPOCH ${String(ep.epoch).padStart(2, '0')}/${ep.total_epochs}] ` +
-          `TRAIN_LOSS: ${ep.train_loss.toFixed(4)} | ` +
-          `VAL_LOSS: ${ep.val_loss.toFixed(4)} | ` +
-          `VAL_ACC: ${ep.accuracy.toFixed(1)}%`
+          `Epoch ${String(ep.epoch).padStart(2, '0')}/${ep.total_epochs} • ` +
+          `Train Loss: ${ep.train_loss.toFixed(4)} | ` +
+          `Val Loss: ${ep.val_loss.toFixed(4)} | ` +
+          `Độ chính xác: ${ep.accuracy.toFixed(1)}%`
         );
       } else if (msg.type === "TRAIN_COMPLETED") {
         this.logTerminal(
-          `\n[TRAINING COMPLETE] Best Accuracy: ${msg.data.best_accuracy}% | ` +
-          `Best Loss: ${msg.data.best_loss} | Saved to checkpoints/${msg.data.checkpoint}\n`
+          `\nHoàn tất huấn luyện: Độ chính xác tốt nhất: ${msg.data.best_accuracy}% | ` +
+          `Loss thấp nhất: ${msg.data.best_loss} | Đã lưu vào checkpoints/${msg.data.checkpoint}\n`
         );
         if (startBtn) startBtn.disabled = false;
         // Refresh Inspector data
         this.loadCognitiveInspectorData();
       } else if (msg.type === "TRAIN_ERROR") {
-        this.logTerminal(`\n[TRAINING ERROR]: ${msg.error}\n`);
+        this.logTerminal(`\nLỗi huấn luyện: ${msg.error}\n`);
         if (startBtn) startBtn.disabled = false;
       }
     };
 
     this.trainWs.onerror = (err) => {
-      this.logTerminal(`[WEBSOCKET ERROR] Could not connect to training stream.`);
+      this.logTerminal(`Lỗi WebSocket: Không thể kết nối đến luồng huấn luyện.`);
       if (startBtn) startBtn.disabled = false;
     };
   }
@@ -443,7 +443,7 @@ class TrainingStudioManager {
     if (!container) return;
 
     if (!identities || identities.length === 0) {
-      container.innerHTML = `<div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">[CHƯA CÓ KHUÔN MẶT NÀO ĐƯỢC LƯU TRONG LEDGER]</div>`;
+      container.innerHTML = `<div style="font-family:var(--font-sans); font-size:0.82rem; color:var(--text-muted); padding:1.2rem; text-align:center;">Chưa có khuôn mặt nào được lưu trong hệ thống.</div>`;
       return;
     }
 
@@ -455,7 +455,7 @@ class TrainingStudioManager {
           <div class="identity-date">${id.enrolled_at}</div>
           <div class="identity-vec">${id.vector_summary}</div>
         </div>
-        <button class="btn btn-outline" style="padding:0.35rem 0.6rem; font-size:0.65rem;" onclick="window.trainStudio.deleteFaceIdentity('${id.id}')">XÓA</button>
+        <button class="btn btn-outline" style="padding:0.35rem 0.6rem; font-size:0.75rem;" onclick="window.trainStudio.deleteFaceIdentity('${id.id}')">Xóa</button>
       </div>
     `).join("");
   }
@@ -469,9 +469,9 @@ class TrainingStudioManager {
         <td style="font-family:var(--font-mono); font-weight:700;">${r.id}</td>
         <td><span class="badge badge-clinical">${r.category}</span></td>
         <td style="font-weight:600;">${r.title}</td>
-        <td style="font-size:0.72rem;">${r.protocol}</td>
+        <td style="font-size:0.78rem;">${r.protocol}</td>
         <td>
-          <button class="btn btn-outline" style="padding:0.25rem 0.5rem; font-size:0.62rem;" onclick="window.trainStudio.deleteCbtRule('${r.id}')">XÓA</button>
+          <button class="btn btn-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="window.trainStudio.deleteCbtRule('${r.id}')">Xóa</button>
         </td>
       </tr>
     `).join("");
@@ -490,14 +490,14 @@ class TrainingStudioManager {
         <td style="font-family:var(--font-mono);">${c.loss}</td>
         <td>
           <span class="badge ${c.status === 'ACTIVE_PRODUCTION' ? 'badge-success' : 'badge-neutral'}">
-            ${c.status}
+            ${c.status === 'ACTIVE_PRODUCTION' ? 'Đang hoạt động' : c.status}
           </span>
         </td>
         <td>
           ${c.status !== 'ACTIVE_PRODUCTION' ? `
-            <button class="btn btn-outline" style="padding:0.25rem 0.5rem; font-size:0.62rem;" onclick="window.trainStudio.restoreCheckpoint('${c.version_id}')">RESTORE</button>
+            <button class="btn btn-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="window.trainStudio.restoreCheckpoint('${c.version_id}')">Khôi phục</button>
           ` : `
-            <span style="font-family:var(--font-mono); font-size:0.65rem; color:var(--text-muted);">CURRENT</span>
+            <span style="font-family:var(--font-sans); font-size:0.75rem; font-weight:600; color:var(--text-muted);">Hiện hành</span>
           `}
         </td>
       </tr>
@@ -510,10 +510,10 @@ class TrainingStudioManager {
     try {
       const res = await fetch(`/api/face/delete?identity_id=${id}`, { method: "POST" });
       const data = await res.json();
-      this.showWebModal(data.success ? "[THÀNH CÔNG]" : "[THẤT BẠI]", data.message, data.success ? "success" : "danger");
+      this.showWebModal(data.success ? "Thành công" : "Thất bại", data.message, data.success ? "success" : "danger");
       this.loadCognitiveInspectorData();
     } catch (e) {
-      this.showWebModal("[LỖI]", "Lỗi khi xóa: " + e, "danger");
+      this.showWebModal("Lỗi", "Lỗi khi xóa: " + e, "danger");
     }
   }
 
@@ -523,10 +523,10 @@ class TrainingStudioManager {
     try {
       const res = await fetch(`/api/cbt/rules/delete?rule_id=${ruleId}`, { method: "POST" });
       const data = await res.json();
-      this.showWebModal(data.success ? "[THÀNH CÔNG]" : "[THẤT BẠI]", data.message, data.success ? "success" : "danger");
+      this.showWebModal(data.success ? "Thành công" : "Thất bại", data.message, data.success ? "success" : "danger");
       this.loadCognitiveInspectorData();
     } catch (e) {
-      this.showWebModal("[LỖI]", "Lỗi khi xóa: " + e, "danger");
+      this.showWebModal("Lỗi", "Lỗi khi xóa: " + e, "danger");
     }
   }
 
@@ -535,10 +535,10 @@ class TrainingStudioManager {
     try {
       const res = await fetch(`/api/checkpoints/restore?version_id=${versionId}`, { method: "POST" });
       const data = await res.json();
-      this.showWebModal(data.success ? "[THÀNH CÔNG]" : "[THẤT BẠI]", data.message, data.success ? "success" : "danger");
+      this.showWebModal(data.success ? "Thành công" : "Thất bại", data.message, data.success ? "success" : "danger");
       this.loadCognitiveInspectorData();
     } catch (e) {
-      this.showWebModal("[LỖI]", "Lỗi khi khôi phục: " + e, "danger");
+      this.showWebModal("Lỗi", "Lỗi khi khôi phục: " + e, "danger");
     }
   }
 
@@ -560,7 +560,7 @@ class TrainingStudioManager {
         const fileInput = document.getElementById("enroll-file-input");
 
         if (!nameInput || !nameInput.value.trim()) {
-          this.showWebModal("[LƯU Ý]", "Vui lòng nhập tên định danh.", "warning");
+          this.showWebModal("Lưu ý", "Vui lòng nhập tên định danh.", "warning");
           return;
         }
 
@@ -572,7 +572,7 @@ class TrainingStudioManager {
           };
           reader.readAsDataURL(fileInput.files[0]);
         } else {
-          this.showWebModal("[LƯU Ý]", "Vui lòng chọn ảnh để đăng ký khuôn mặt.", "warning");
+          this.showWebModal("Lưu ý", "Vui lòng chọn ảnh để đăng ký khuôn mặt.", "warning");
         }
       });
     }
@@ -587,7 +587,7 @@ class TrainingStudioManager {
         const prescription = document.getElementById("cbt-rule-prescription").value.trim();
 
         if (!title || !protocol) {
-          this.showWebModal("[LƯU Ý]", "Vui lòng điền đầy đủ tiêu đề và nội dung quy tắc.", "warning");
+          this.showWebModal("Lưu ý", "Vui lòng điền đầy đủ tiêu đề và nội dung quy tắc.", "warning");
           return;
         }
 
@@ -600,13 +600,13 @@ class TrainingStudioManager {
             })
           });
           const data = await res.json();
-          this.showWebModal("[THÀNH CÔNG]", "Đã lưu quy tắc thành công!", "success");
+          this.showWebModal("Thành công", "Đã lưu quy tắc thành công!", "success");
           document.getElementById("cbt-rule-title").value = "";
           document.getElementById("cbt-rule-protocol").value = "";
           document.getElementById("cbt-rule-prescription").value = "";
           this.loadCognitiveInspectorData();
         } catch (e) {
-          this.showWebModal("[LỖI]", "Lỗi khi lưu quy tắc: " + e, "danger");
+          this.showWebModal("Lỗi", "Lỗi khi lưu quy tắc: " + e, "danger");
         }
       });
     }
@@ -620,10 +620,10 @@ class TrainingStudioManager {
         body: JSON.stringify({ name: name, image_b64: imageB64 })
       });
       const data = await res.json();
-      this.showWebModal(data.success ? "[THÀNH CÔNG]" : "[THẤT BẠI]", data.message, data.success ? "success" : "danger");
+      this.showWebModal(data.success ? "Thành công" : "Thất bại", data.message, data.success ? "success" : "danger");
       this.loadCognitiveInspectorData();
     } catch (err) {
-      this.showWebModal("[LỖI ĐĂNG KÝ]", "Lỗi đăng ký khuôn mặt: " + err, "danger");
+      this.showWebModal("Lỗi đăng ký", "Lỗi đăng ký khuôn mặt: " + err, "danger");
     }
   }
 }

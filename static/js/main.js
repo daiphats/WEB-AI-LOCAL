@@ -63,25 +63,25 @@ class ClinicalStationApp {
     const iconBadge = document.getElementById("web-modal-icon-badge");
     const closeBtn = document.getElementById("web-modal-close-btn");
 
-    if (titleEl) titleEl.textContent = title || "CẢNH BÁO LÂM SÀNG";
+    if (titleEl) titleEl.textContent = title || "Thông báo lâm sàng";
     if (bodyEl) bodyEl.textContent = message || "";
 
     if (iconBadge) {
       if (type === "danger" || type === "error") {
         iconBadge.className = "badge badge-danger";
-        iconBadge.textContent = "[CẢNH BÁO]";
-        iconBadge.style.background = "rgba(239, 68, 68, 0.25)";
-        iconBadge.style.color = "#F87171";
+        iconBadge.textContent = "Cảnh báo";
+        iconBadge.style.background = "rgba(239, 68, 68, 0.15)";
+        iconBadge.style.color = "var(--accent-danger)";
       } else if (type === "success") {
         iconBadge.className = "badge badge-success";
-        iconBadge.textContent = "[THÀNH CÔNG]";
-        iconBadge.style.background = "rgba(16, 185, 129, 0.25)";
-        iconBadge.style.color = "#34D399";
+        iconBadge.textContent = "Thành công";
+        iconBadge.style.background = "rgba(5, 150, 105, 0.15)";
+        iconBadge.style.color = "var(--accent-success)";
       } else {
         iconBadge.className = "badge badge-warning";
-        iconBadge.textContent = "[LƯU Ý]";
-        iconBadge.style.background = "rgba(245, 158, 11, 0.25)";
-        iconBadge.style.color = "#FBBF24";
+        iconBadge.textContent = "Lưu ý";
+        iconBadge.style.background = "rgba(217, 119, 6, 0.15)";
+        iconBadge.style.color = "var(--accent-warning)";
       }
     }
 
@@ -159,17 +159,17 @@ class ClinicalStationApp {
       if (overlay) overlay.style.display = "none";
       if (toggleBtn) {
         const lbl = document.getElementById("webcam-toggle-label");
-        if (lbl) lbl.textContent = "TẮT";
+        if (lbl) lbl.textContent = "Tắt camera";
         toggleBtn.classList.add("is-active");
       }
       const multiToggle = document.getElementById("multiverse-cam-toggle-btn");
       if (multiToggle) {
         const mlbl = document.getElementById("multiverse-cam-toggle-label");
-        if (mlbl) mlbl.textContent = "TẮT";
+        if (mlbl) mlbl.textContent = "Tắt camera";
         multiToggle.classList.add("is-active");
       }
       if (statusText) {
-        statusText.textContent = "RESNET50 (2048-D) ACTIVE";
+        statusText.textContent = "RESNET50 ACTIVE";
       }
       const devBadge = document.getElementById("device-status-badge");
       if (devBadge) {
@@ -185,26 +185,61 @@ class ClinicalStationApp {
       }
     } catch (err) {
       console.warn("[CAMERA] Access not granted or camera busy:", err);
+      let errorMsg = "Không thể truy cập camera. Vui lòng cấp quyền camera trên trình duyệt hoặc kiểm tra thiết bị.";
+      if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+        errorMsg = "Trình duyệt chặn truy cập camera qua mạng LAN. Vui lòng truy cập bằng localhost hoặc HTTPS.";
+      } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        errorMsg = "Quyền truy cập camera bị từ chối. Vui lòng nhấn vào biểu tượng ổ khóa trên thanh địa chỉ trình duyệt để cấp quyền camera.";
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        errorMsg = "Không tìm thấy thiết bị camera. Vui lòng kiểm tra kết nối webcam hoặc đảm bảo ứng dụng khác không chiếm giữ camera.";
+      }
+
+      // Tab 1 Standby Overlay Prompt
       if (overlay) {
         overlay.style.display = "flex";
         const promptText = overlay.querySelector(".standby-prompt");
         if (promptText) {
-          if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-            promptText.textContent = "TRÌNH DUYỆT CHẶN CAM QUA HTTP LAN. HÃY DÙNG LOCALHOST HOẶC HTTPS!";
-          } else {
-            promptText.textContent = "CAMERA BỊ CHẶN HOẶC ĐANG BẬN. VUI LÒNG CẤP QUYỀN CAMERA TRÊN TRÌNH DUYỆT!";
-          }
+          promptText.textContent = errorMsg;
+          promptText.style.color = "#DC2626";
         }
       }
+
+      // Tab 2 Game Standby Prompt
+      const gameStandby = document.getElementById("game-cam-standby");
+      if (gameStandby) {
+        gameStandby.style.display = "flex";
+        const gPrompt = gameStandby.querySelector(".standby-prompt");
+        if (gPrompt) {
+          gPrompt.textContent = errorMsg;
+          gPrompt.style.color = "#DC2626";
+        }
+      }
+      const gameCamBadge = document.getElementById("game-cam-status-badge");
+      if (gameCamBadge) {
+        gameCamBadge.textContent = "Camera chưa kích hoạt";
+        gameCamBadge.className = "badge badge-warning";
+      }
+
+      // Tab 3 Multiverse Standby Prompt
+      const multiStandby = document.getElementById("multiverse-cam-standby");
+      if (multiStandby) {
+        multiStandby.style.display = "flex";
+      }
+      const multiDesc = document.getElementById("multiverse-standby-desc");
+      if (multiDesc) {
+        multiDesc.textContent = errorMsg;
+        multiDesc.style.color = "#DC2626";
+      }
+
       if (toggleBtn) {
         const lbl = document.getElementById("webcam-toggle-label");
-        if (lbl) lbl.textContent = "BẬT";
+        if (lbl) lbl.textContent = "Bật camera";
         toggleBtn.classList.remove("is-active");
       }
       const multiToggle = document.getElementById("multiverse-cam-toggle-btn");
       if (multiToggle) {
         const mlbl = document.getElementById("multiverse-cam-toggle-label");
-        if (mlbl) mlbl.textContent = "BẬT";
+        if (mlbl) mlbl.textContent = "Bật camera";
         multiToggle.classList.remove("is-active");
       }
     }
@@ -221,26 +256,54 @@ class ClinicalStationApp {
     this.lastFaceDetected = false;
     if (typeof this.syncTab3FaceAlerts === "function") this.syncTab3FaceAlerts();
 
+    // Tab 1 Standby reset
     const overlay = document.getElementById("camera-standby-overlay");
-    if (overlay) overlay.style.display = "flex";
+    if (overlay) {
+      overlay.style.display = "flex";
+      const promptText = overlay.querySelector(".standby-prompt");
+      if (promptText) {
+        promptText.textContent = "Vui lòng bật camera để hệ thống bắt đầu đo đạc cử động mắt, nét mặt và tư thế.";
+        promptText.style.color = "";
+      }
+    }
+
+    // Tab 2 Standby reset
+    const gameStandby = document.getElementById("game-cam-standby");
+    if (gameStandby) {
+      gameStandby.style.display = "flex";
+      const gPrompt = gameStandby.querySelector(".standby-prompt");
+      if (gPrompt) {
+        gPrompt.textContent = "Vui lòng kết nối camera để tham gia thử thách bắt chước biểu cảm sinh trắc học.";
+        gPrompt.style.color = "";
+      }
+    }
+
+    // Tab 3 Standby reset
+    const multiStandby = document.getElementById("multiverse-cam-standby");
+    if (multiStandby) multiStandby.style.display = "flex";
+    const multiDesc = document.getElementById("multiverse-standby-desc");
+    if (multiDesc) {
+      multiDesc.textContent = "Vui lòng bật camera để bắt đầu theo dõi cử động mắt, nét mặt và rPPG nhịp tim.";
+      multiDesc.style.color = "";
+    }
 
     const toggleBtn = document.getElementById("webcam-toggle-btn");
     if (toggleBtn) {
       const lbl = document.getElementById("webcam-toggle-label");
-      if (lbl) lbl.textContent = "BẬT";
+      if (lbl) lbl.textContent = "Bật camera";
       toggleBtn.classList.remove("is-active");
     }
 
     const multiToggle = document.getElementById("multiverse-cam-toggle-btn");
     if (multiToggle) {
       const mlbl = document.getElementById("multiverse-cam-toggle-label");
-      if (mlbl) mlbl.textContent = "BẬT";
+      if (mlbl) mlbl.textContent = "Bật camera";
       multiToggle.classList.remove("is-active");
     }
 
     const statusText = document.getElementById("hud-backbone-status");
     if (statusText) {
-      statusText.textContent = "RESNET50 STANDBY";
+      statusText.textContent = "Sẵn sàng";
     }
 
     // Sync with mimic game and multiverse simulation
@@ -464,10 +527,10 @@ class ClinicalStationApp {
         ctx.save();
         ctx.translate(bx + bw / 2, by - 6);
         ctx.scale(-1, 1);
-        ctx.font = "10px 'JetBrains Mono', monospace";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+        ctx.font = "11px 'Inter', sans-serif";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
         ctx.textAlign = "center";
-        ctx.fillText("[STANDBY: BẬT CAMERA ĐỂ QUÉT KHUÔN MẶT]", 0, 0);
+        ctx.fillText("Camera chưa kích hoạt • Bật camera để nhận diện", 0, 0);
         ctx.restore();
       }
     }
@@ -607,32 +670,32 @@ class ClinicalStationApp {
       if (this.lastFaceDetected) {
         if (hudText) {
           hudText.className = "badge badge-success";
-          hudText.style.background = "rgba(6, 78, 59, 0.92)";
-          hudText.style.border = "1px solid rgba(52, 211, 153, 0.75)";
-          hudText.style.color = "#D1FAE5";
-          hudText.style.boxShadow = "0 4px 14px rgba(16, 185, 129, 0.35)";
+          hudText.style.background = "#059669";
+          hudText.style.border = "1px solid rgba(5, 150, 105, 0.4)";
+          hudText.style.color = "#FFFFFF";
+          hudText.style.boxShadow = "0 2px 8px rgba(5, 150, 105, 0.25)";
         }
         if (hudDot) {
-          hudDot.style.background = "#10B981";
-          hudDot.style.boxShadow = "0 0 8px #10B981";
+          hudDot.style.background = "#34D399";
+          hudDot.style.boxShadow = "0 0 6px #34D399";
         }
         if (hudLabel) {
-          hudLabel.textContent = "[ĐÃ TÌM THẤY KHUÔN MẶT - ĐANG KHỚP CHUẨN]";
+          hudLabel.textContent = "Đang theo dõi khuôn mặt";
         }
       } else {
         if (hudText) {
-          hudText.className = "badge badge-danger";
-          hudText.style.background = "rgba(127, 29, 29, 0.92)";
-          hudText.style.border = "1px solid rgba(248, 113, 113, 0.75)";
-          hudText.style.color = "#FEE2E2";
-          hudText.style.boxShadow = "0 4px 14px rgba(239, 68, 68, 0.35)";
+          hudText.className = "badge badge-warning";
+          hudText.style.background = "#D97706";
+          hudText.style.border = "1px solid rgba(217, 119, 6, 0.4)";
+          hudText.style.color = "#FFFFFF";
+          hudText.style.boxShadow = "0 2px 8px rgba(217, 119, 6, 0.25)";
         }
         if (hudDot) {
-          hudDot.style.background = "#EF4444";
-          hudDot.style.boxShadow = "0 0 8px #EF4444";
+          hudDot.style.background = "#FDE68A";
+          hudDot.style.boxShadow = "0 0 6px #FDE68A";
         }
         if (hudLabel) {
-          hudLabel.textContent = "[ĐANG TÌM KHUÔN MẶT - VUI LÒNG HƯỚNG VÀO CAMERA]";
+          hudLabel.textContent = "Chưa phát hiện khuôn mặt • Vui lòng hướng vào giữa khung ngắm";
         }
       }
     } else {
@@ -648,23 +711,23 @@ class ClinicalStationApp {
     if (!this.isCameraActive) {
       postDot.style.background = "#94A3B8";
       postDot.style.boxShadow = "none";
-      postText.style.color = "#94A3B8";
-      postText.textContent = "AI TRẠNG THÁI: [CAMERA ĐANG TẮT] Bật camera để AI quét khuôn mặt & tư thế";
+      postText.style.color = "#64748B";
+      postText.textContent = "Trạng thái: Camera chưa kích hoạt • Bật camera để AI phân tích tư thế";
     } else if (this.lastFaceDetected) {
       const isAligned = Math.abs(this.headTilt) <= 12;
-      postDot.style.background = isAligned ? "#10B981" : "#F59E0B";
-      postDot.style.boxShadow = isAligned ? "0 0 8px #10B981" : "0 0 8px #F59E0B";
-      postText.style.color = isAligned ? "#34D399" : "#FBBF24";
+      postDot.style.background = isAligned ? "#059669" : "#D97706";
+      postDot.style.boxShadow = isAligned ? "0 0 6px #059669" : "0 0 6px #D97706";
+      postText.style.color = isAligned ? "#059669" : "#D97706";
       if (isAligned) {
-        postText.textContent = `AI TRẠNG THÁI: [KHUÔN MẶT ĐÃ KHỚP] • Trục cổ C1-C7 thẳng chuẩn (Lệch ${Math.abs(this.headTilt)}°) • Sẵn sàng Chin Tuck`;
+        postText.textContent = `Trạng thái: Đang theo dõi khuôn mặt • Trục cổ thẳng chuẩn (Lệch ${Math.abs(this.headTilt)}°)`;
       } else {
-        postText.textContent = `AI TRẠNG THÁI: [CẢNH BÁO TƯ THẾ] • Đầu đang nghiêng ${this.headTilt}° • Vui lòng giữ thẳng đầu vào khung xanh`;
+        postText.textContent = `Trạng thái: Cảnh báo tư thế • Đầu nghiêng ${Math.abs(this.headTilt)}° • Hãy giữ thẳng cổ`;
       }
     } else {
-      postDot.style.background = "#EF4444";
-      postDot.style.boxShadow = "0 0 8px #EF4444";
-      postText.style.color = "#FCA5A5";
-      postText.textContent = "AI TRẠNG THÁI: [ĐANG TÌM KHUÔN MẶT] Vui lòng hướng mặt vào khung xanh trên camera";
+      postDot.style.background = "#D97706";
+      postDot.style.boxShadow = "0 0 6px #D97706";
+      postText.style.color = "#D97706";
+      postText.textContent = "Trạng thái: Chưa phát hiện khuôn mặt • Vui lòng ngồi thẳng trước camera";
     }
   }
 
@@ -677,10 +740,10 @@ class ClinicalStationApp {
 
     if (this.isCameraActive) {
       if (!this.lastFaceDetected) {
-        if (camAlert) camAlert.style.display = "flex";
+        if (camAlert) camAlert.style.display = "none";
         if (ctlAlert) {
           ctlAlert.style.display = "flex";
-          if (ctlAlertText) ctlAlertText.textContent = "Chưa nhận diện được khuôn mặt. Vui lòng ngồi thẳng trước camera!";
+          if (ctlAlertText) ctlAlertText.textContent = "Chưa phát hiện khuôn mặt • Vui lòng ngồi thẳng trước camera";
         }
       } else {
         if (camAlert) camAlert.style.display = "none";
@@ -690,7 +753,7 @@ class ClinicalStationApp {
       if (camAlert) camAlert.style.display = "none";
       if (ctlAlert) {
         ctlAlert.style.display = "flex";
-        if (ctlAlertText) ctlAlertText.textContent = "Camera đang tắt. Vui lòng bật camera để AI nhận diện khuôn mặt!";
+        if (ctlAlertText) ctlAlertText.textContent = "Camera chưa kích hoạt • Vui lòng bật camera để bắt đầu theo dõi";
       }
     }
   }
@@ -734,7 +797,7 @@ class ClinicalStationApp {
     this.monitorWs.onopen = () => {
       const devBadge = document.getElementById("device-status-badge");
       if (devBadge) {
-        devBadge.textContent = "[STATION ENGINE: CONNECTED]";
+        devBadge.textContent = "Hệ thống: Đã kết nối";
         devBadge.className = "badge badge-success";
       }
       this.startTelemetryTransmission();
@@ -750,7 +813,7 @@ class ClinicalStationApp {
     this.monitorWs.onclose = () => {
       const devBadge = document.getElementById("device-status-badge");
       if (devBadge) {
-        devBadge.textContent = "[STATION ENGINE: DISCONNECTED - RECONNECTING]";
+        devBadge.textContent = "Hệ thống: Mất kết nối • Đang kết nối lại...";
         devBadge.className = "badge badge-warning";
       }
       setTimeout(() => this.initWebSocketStream(), 3000);
@@ -1110,7 +1173,7 @@ class ClinicalStationApp {
       const rationaleEl = document.getElementById("vocal-prompt-rationale");
       if (quoteEl) quoteEl.textContent = `"${data.prompt_text}"`;
       if (tab3QuoteEl) tab3QuoteEl.textContent = `"${data.prompt_text}"`;
-      if (rationaleEl) rationaleEl.textContent = `[CHỈ ĐỊNH LÂM SÀNG: ${data.rationale}]`;
+      if (rationaleEl) rationaleEl.textContent = `Chỉ định lâm sàng: ${data.rationale}`;
     } catch (e) {
       console.warn("[VOCAL] Prompt fetch error:", e);
     }
@@ -1163,13 +1226,13 @@ class ClinicalStationApp {
       btn.disabled = true;
       btn.innerHTML = `
         <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#EF4444; box-shadow:0 0 8px #EF4444; margin-right:6px;"></span>
-        [ĐANG GHI ÂM (3.5 GIÂY)...]
+        Đang ghi âm (3.5s)...
       `;
       btn.className = "btn btn-danger";
     });
 
     statusTexts.forEach(st => {
-      st.textContent = "[MICRO ACTIVE: VUI LÒNG NÓI RÕ VÀO MICRO...]";
+      st.textContent = "Micro đang hoạt động • Vui lòng đọc to và rõ câu mẫu...";
       st.style.color = "#EF4444";
     });
 
@@ -1229,7 +1292,7 @@ class ClinicalStationApp {
     } catch (err) {
       console.warn("[VOCAL] Microphone permission or access error:", err);
       statusTexts.forEach(st => {
-        st.textContent = "[LỖI MICROPHONE: VUI LÒNG CẤP QUYỀN]";
+        st.textContent = "Lỗi microphone: Vui lòng cấp quyền truy cập micro";
         st.style.color = "#EF4444";
       });
     }
@@ -1240,7 +1303,7 @@ class ClinicalStationApp {
       vuBars.forEach(vb => vb.style.width = "0%");
       vuTexts.forEach(vt => vt.textContent = "0%");
       statusTexts.forEach(st => {
-        st.textContent = "[ĐANG PHÂN TÍCH ÂM PHỔ 180 CHIỀU & F0...]";
+        st.textContent = "Đang trích xuất đặc trưng âm phổ & F0...";
         st.style.color = "var(--primary)";
       });
 
@@ -1288,7 +1351,7 @@ class ClinicalStationApp {
       } catch (err) {
         console.error("[VOCAL] Evaluation error:", err);
         statusTexts.forEach(st => {
-          st.textContent = "[LỖI KẾT NỐI MÁY CHỦ]";
+          st.textContent = "Lỗi kết nối máy chủ phân tích giọng nói";
           st.style.color = "#EF4444";
         });
       } finally {
@@ -1302,7 +1365,7 @@ class ClinicalStationApp {
               <line x1="12" y1="19" x2="12" y2="23"/>
               <line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
-            [BẮT ĐẦU GHI ÂM (3.5 GIÂY)]
+            Bắt đầu ghi âm (3.5s)
           `;
           btn.className = "btn btn-primary";
         });
@@ -1414,7 +1477,7 @@ class ClinicalStationApp {
       if (phase === "INHALE") {
         if (timerText) timerText.textContent = `0${count}`;
         if (phaseBadge) {
-          phaseBadge.textContent = "[HÍT VÀO SÂU QUA MŨI - 4S]";
+          phaseBadge.textContent = "Hít vào sâu qua mũi (4s)";
           phaseBadge.className = "badge badge-clinical";
         }
         if (innerCircle) innerCircle.style.transform = "scale(1.5)";
@@ -1427,7 +1490,7 @@ class ClinicalStationApp {
       } else if (phase === "HOLD") {
         if (timerText) timerText.textContent = `0${count}`;
         if (phaseBadge) {
-          phaseBadge.textContent = "[GIỮ HƠI THỞ & THẢ LỎNG VAI - 7S]";
+          phaseBadge.textContent = "Giữ hơi thở & thả lỏng vai (7s)";
           phaseBadge.className = "badge badge-warning";
         }
         count--;
@@ -1438,7 +1501,7 @@ class ClinicalStationApp {
       } else if (phase === "EXHALE") {
         if (timerText) timerText.textContent = `0${count}`;
         if (phaseBadge) {
-          phaseBadge.textContent = "[THỞ RA CHẬM QUA MÔI - 8S]";
+          phaseBadge.textContent = "Thở ra chậm qua môi (8s)";
           phaseBadge.className = "badge badge-success";
         }
         if (innerCircle) innerCircle.style.transform = "scale(1.0)";
@@ -1564,7 +1627,7 @@ class ClinicalStationApp {
     const overlay = document.getElementById("assessment-step-overlay");
     if (overlay) overlay.style.display = "none";
     if (reason) {
-      this.showWebModal("[ĐÃ HỦY ĐO ĐẠT]", reason, "warning");
+      this.showWebModal("Đã hủy đo đạc", reason, "warning");
     }
   }
 
@@ -1619,7 +1682,7 @@ class ClinicalStationApp {
 
     if (overlay) overlay.style.display = "flex";
     if (faceTrackingStatus) {
-      faceTrackingStatus.textContent = "[ĐANG THEO DÕI KHUÔN MẶT]";
+      faceTrackingStatus.textContent = "Đang theo dõi khuôn mặt";
       faceTrackingStatus.style.color = "#10B981";
     }
 
@@ -1643,12 +1706,12 @@ class ClinicalStationApp {
           faceSeenDuringTest = true;
           bestFaceFrame = f;
           if (faceBadge) {
-            faceBadge.textContent = "[ĐANG THEO DÕI KHUÔN MẶT]";
+            faceBadge.textContent = "Đang theo dõi khuôn mặt";
             faceBadge.style.color = "#10B981";
           }
         } else {
           if (faceBadge) {
-            faceBadge.textContent = "[CẢNH BÁO: MẤT DẤU KHUÔN MẶT]";
+            faceBadge.textContent = "Chưa phát hiện khuôn mặt";
             faceBadge.style.color = "#EF4444";
           }
         }
@@ -2125,7 +2188,7 @@ class ClinicalStationApp {
       } else {
         if (noFaceWarn) {
           noFaceWarn.style.display = "block";
-          noFaceWarn.textContent = "[KHÔNG TÌM THẤY KHUÔN MẶT]";
+          noFaceWarn.textContent = "Chưa phát hiện khuôn mặt";
         }
         if (faceContainer) faceContainer.style.border = "2px solid #DC2626";
       }
@@ -2133,7 +2196,7 @@ class ClinicalStationApp {
       if (faceImg) faceImg.style.display = "none";
       if (noFaceWarn) {
         noFaceWarn.style.display = "block";
-        noFaceWarn.textContent = "[CAMERA CHƯA BẬT / KHÔNG CÓ ẢNH]";
+        noFaceWarn.textContent = "Camera chưa kích hoạt / Không có ảnh";
       }
       if (faceContainer) faceContainer.style.border = "2px solid #DC2626";
     }
@@ -2155,11 +2218,11 @@ class ClinicalStationApp {
     const hasVoice = Boolean(res.has_speech || res.has_audio);
     if (audioBadge) {
       if (hasVoice) {
-        const emoSuffix = res.vocal_emotion ? ` • ${res.vocal_emotion.toUpperCase()} (${res.vocal_confidence}%)` : "";
-        audioBadge.textContent = `[ÂM LƯỢNG: ${Math.round((avgVol || 0) * 100)}%${emoSuffix}]`;
+        const emoSuffix = res.vocal_emotion ? ` • ${res.vocal_emotion} (${res.vocal_confidence}%)` : "";
+        audioBadge.textContent = `Âm lượng: ${Math.round((avgVol || 0) * 100)}%${emoSuffix}`;
         audioBadge.className = "badge badge-success";
       } else {
-        audioBadge.textContent = "[KHÔNG CÓ TIẾNG NÓI]";
+        audioBadge.textContent = "Không có tiếng nói";
         audioBadge.className = "badge badge-danger";
       }
     }
@@ -2170,16 +2233,16 @@ class ClinicalStationApp {
     // 5. Overall Evidence Status Badge
     if (evidenceBadge) {
       if (res.face_detected && hasVoice) {
-        evidenceBadge.textContent = "[ĐÃ THU THẬP ĐỦ 2 KÊNH SINH TRẮC]";
+        evidenceBadge.textContent = "Đã thu thập đủ 2 kênh sinh trắc";
         evidenceBadge.className = "badge badge-success";
       } else if (!res.face_detected && !hasVoice) {
-        evidenceBadge.textContent = "[KHÔNG HỢP LỆ: THIẾU CẢ MẶT & GIỌNG NÓI]";
+        evidenceBadge.textContent = "Không hợp lệ: Thiếu cả mặt & giọng nói";
         evidenceBadge.className = "badge badge-danger";
       } else if (!res.face_detected) {
-        evidenceBadge.textContent = "[THIẾU TÍN HIỆU KHUÔN MẶT]";
+        evidenceBadge.textContent = "Thiếu tín hiệu khuôn mặt";
         evidenceBadge.className = "badge badge-warning";
       } else {
-        evidenceBadge.textContent = "[THIẾU TÍN HIỆU GIỌNG NÓI]";
+        evidenceBadge.textContent = "Thiếu tín hiệu giọng nói";
         evidenceBadge.className = "badge badge-warning";
       }
     }
@@ -2892,11 +2955,11 @@ class GuidedAssessmentSession {
     if (retestRow) retestRow.style.display = "none";
     if (countdownWrapper) countdownWrapper.style.display = "flex";
     if (statusBadge) {
-      statusBadge.textContent = "[ĐANG ĐÁNH GIÁ: 15S]";
+      statusBadge.textContent = "Đang đánh giá (15s)";
       statusBadge.className = "badge badge-warning";
     }
     if (modeBadge) {
-      modeBadge.textContent = "ĐANG ĐÁNH GIÁ (15S)";
+      modeBadge.textContent = "Đang đánh giá (15s)";
       modeBadge.className = "badge badge-warning";
     }
     if (countdownVal) countdownVal.textContent = "15s";
@@ -3123,7 +3186,7 @@ class GuidedAssessmentSession {
 
     const statusBadge = document.getElementById("session-status-badge");
     if (statusBadge) {
-      statusBadge.textContent = "[ĐANG TỔNG HỢP KẾT QUẢ...]";
+      statusBadge.textContent = "Đang tổng hợp kết quả...";
       statusBadge.className = "badge badge-clinical";
     }
 
@@ -3327,7 +3390,7 @@ class GuidedAssessmentSession {
 
     if (countdownWrapper) countdownWrapper.style.display = "none";
     if (statusBadge) {
-      statusBadge.textContent = "[ĐÃ HOÀN TẤT]";
+      statusBadge.textContent = "Đã hoàn tất";
       statusBadge.className = "badge badge-success";
     }
     if (startBtn) {

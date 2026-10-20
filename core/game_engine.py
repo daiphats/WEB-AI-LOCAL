@@ -165,7 +165,7 @@ class MimicMatchGameEngine:
                 "target_id": target["id"],
                 "target_name": target["name"],
                 "matching_score": 0.0,
-                "status_badge": "[KHÔNG TÌM THẤY GƯƠNG MẶT]",
+                "status_badge": "Chưa nhận diện được khuôn mặt",
                 "rating": "FAIL",
                 "streak": 0,
                 "session_high_score": self.session_high_score,
@@ -189,7 +189,7 @@ class MimicMatchGameEngine:
         is_smiling = bool(analysis.get("is_smiling", False)) or (smile_srv >= 40.0)
 
         score_pct = 50.0
-        status_badge = "[MỨC ĐỘ TRUNG BÌNH]"
+        status_badge = "Mức độ trung bình"
         rating = "ACCEPTABLE"
         clinical_insight = ""
         muscle_acts = {}
@@ -203,7 +203,7 @@ class MimicMatchGameEngine:
                 m1 = round(min(97.0, 83.0 + (smile_srv / 100.0) * 12.0 + max(0.0, r_width - 0.92) * 20.0), 1)
                 m2 = round(min(95.5, 81.0 + (smile_srv / 100.0) * 13.0 + max(0.0, r_width - 0.92) * 20.0), 1)
                 score_pct = round(0.55 * m1 + 0.45 * m2, 1)
-                status_badge = "[XUẤT SẮC - NỤ CƯỜI RẠNG RỠ]"
+                status_badge = "Xuất sắc • Nụ cười rạng rỡ"
                 rating = "PASS"
                 clinical_insight = "Phản xạ nâng cơ gò má lớn và co cơ vòng mi đạt chuẩn nụ cười Duchenne. Xung thần kinh từ vỏ não vận động M1 điều hòa tối ưu."
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -213,7 +213,7 @@ class MimicMatchGameEngine:
                 m1 = round(min(78.0, 62.0 + max(0.0, smile_srv - 25.0) * 0.5), 1)
                 m2 = round(min(76.0, 60.0 + max(0.0, smile_srv - 25.0) * 0.5), 1)
                 score_pct = round(0.55 * m1 + 0.45 * m2, 1)
-                status_badge = "[ĐẠT MỨC KHÁ: HÃY CƯỜI TƯƠI HƠN]"
+                status_badge = "Đạt mức khá • Hãy cười tươi hơn"
                 rating = "ACCEPTABLE"
                 clinical_insight = "Đã có phản xạ mỉm cười nhẹ. Hãy cười tươi hơn nữa để khóe miệng nâng cao rõ rệt và đuôi mắt nheo lại!"
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -223,7 +223,7 @@ class MimicMatchGameEngine:
                 m1 = round(max(15.0, min(32.0, 18.0 + max(0.0, r_width - 0.75) * 40.0)), 1)
                 m2 = round(max(12.0, min(28.0, 15.0 + max(0.0, r_width - 0.75) * 35.0)), 1)
                 score_pct = round(0.55 * m1 + 0.45 * m2, 1)
-                status_badge = "[CHƯA ĐẠT: THIẾU NỤ CƯỜI]"
+                status_badge = "Chưa đạt • Thiếu nụ cười"
                 rating = "FAIL"
                 clinical_insight = "Khuôn mặt đang ở trạng thái nghiêm nghị hoặc bất động. Hãy mỉm cười thật tươi, nâng cao hai bên khóe môi và nheo nhẹ khóe mắt!"
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -236,7 +236,7 @@ class MimicMatchGameEngine:
                 m1 = round(min(96.5, 83.0 + min(11.0, (r_jaw - 0.68) * 45.0) + min(3.0, max(0.0, forehead_act - 25.0) * 0.15)), 1)
                 m2 = round(min(95.0, 81.0 + min(11.0, (r_jaw - 0.68) * 45.0) + min(3.0, max(0.0, forehead_act - 25.0) * 0.15)), 1)
                 score_pct = round(0.5 * m1 + 0.5 * m2, 1)
-                status_badge = "[XUẤT SẮC - PHẢN XẠ CẢNH GIÁC]"
+                status_badge = "Xuất sắc • Phản xạ cảnh giác"
                 rating = "PASS"
                 clinical_insight = "Cơ trán nâng cao và cơ nâng mi trên mở rộng tối ưu biên độ thị giác. Hệ thống lưới hoạt hóa hướng lên (ARAS) được kích hoạt chuẩn xác."
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -245,7 +245,7 @@ class MimicMatchGameEngine:
                 m1 = round(min(76.0, 60.0 + (r_jaw - 0.56) * 110.0), 1)
                 m2 = round(min(74.0, 58.0 + (r_jaw - 0.56) * 110.0), 1)
                 score_pct = round(0.5 * m1 + 0.5 * m2, 1)
-                status_badge = "[ĐẠT MỨC KHÁ: HÃY HÁ RỘNG HƠN]"
+                status_badge = "Đạt mức khá • Hãy há rộng hơn"
                 rating = "ACCEPTABLE"
                 clinical_insight = "Đã có phản xạ há miệng nhưng biên độ còn hẹp. Hãy há rộng miệng hơn và nhướng chân mày lên cao!"
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -254,7 +254,7 @@ class MimicMatchGameEngine:
                 m1 = round(max(14.0, min(28.0, 15.0 + max(0.0, r_jaw - 0.40) * 40.0)), 1)
                 m2 = round(max(12.0, min(26.0, 14.0 + max(0.0, r_jaw - 0.40) * 35.0)), 1)
                 score_pct = round(0.5 * m1 + 0.5 * m2, 1)
-                status_badge = "[CHƯA ĐẠT: HÃY HÁ MIỆNG & MỞ TO MẮT]"
+                status_badge = "Chưa đạt • Hãy há miệng và mở to mắt"
                 rating = "FAIL"
                 clinical_insight = "Khuôn mặt vẫn khép miệng ở trạng thái tĩnh. Hãy nhướng hai chân mày lên cao, mở to mắt và há rộng khẩu hình miệng!"
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -265,21 +265,21 @@ class MimicMatchGameEngine:
             # Resting mouth, relaxed jaw (r_jaw < 0.60), not smiling
             if is_smiling and (smile_srv >= 35.0 or r_width >= 0.91):
                 score_pct = round(max(18.0, min(32.0, 30.0 - max(0.0, smile_srv - 35.0) * 0.25)), 1)
-                status_badge = "[CHƯA ĐẠT: ĐANG CƯỜI - CẦN THẢ LỎNG]"
+                status_badge = "Chưa đạt • Cần thả lỏng cơ mặt"
                 rating = "FAIL"
                 clinical_insight = "Hệ thống phát hiện khóe miệng đang nhếch (đang cười). Thử thách này yêu cầu nét mặt tĩnh lặng, thả lỏng hoàn toàn quai hàm và khép nhẹ môi."
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)
                 muscle_acts[target["primary_muscles"][1]] = round(score_pct + 1.0, 1)
             elif r_jaw >= 0.65:
                 score_pct = round(max(16.0, min(28.0, 22.0)), 1)
-                status_badge = "[CHƯA ĐẠT: QUAI HÀM ĐANG MỞ]"
+                status_badge = "Chưa đạt • Quai hàm đang mở"
                 rating = "FAIL"
                 clinical_insight = "Quai hàm đang há mở. Hãy khép hờ hai môi và thả lỏng cơ mặt hoàn toàn."
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)
                 muscle_acts[target["primary_muscles"][1]] = round(score_pct + 1.0, 1)
             elif glabella_act > 38.0:
                 score_pct = round(max(50.0, min(68.0, 65.0 - (glabella_act - 38.0) * 0.5)), 1)
-                status_badge = "[CẦN THẢ LỎNG VÙNG TRÁN & CHÂN MÀY]"
+                status_badge = "Cần thả lỏng vùng trán & chân mày"
                 rating = "ACCEPTABLE"
                 clinical_insight = "Vùng giữa hai chân mày còn hơi co thắt. Hãy thả lỏng cơ cau mày và hít thở nhẹ nhàng."
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)
@@ -291,7 +291,7 @@ class MimicMatchGameEngine:
                 m1 = round(min(94.5, 89.0 + symmetry_bonus - tension_penalty), 1)
                 m2 = round(min(93.5, 88.0 + symmetry_bonus - tension_penalty), 1)
                 score_pct = round(0.5 * m1 + 0.5 * m2, 1)
-                status_badge = "[XUẤT SẮC - THẢ LỎNG ĐIỀM TĨNH]"
+                status_badge = "Xuất sắc • Thả lỏng điềm tĩnh"
                 rating = "PASS"
                 clinical_insight = "Toàn bộ cơ cắn và cơ cau mày đã được thả lỏng hoàn toàn. Hệ thần kinh đối giao cảm (Parasympathetic) đang chiếm ưu thế vượt trội."
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -302,14 +302,14 @@ class MimicMatchGameEngine:
             # Needs focused gaze, firm closed mouth, concentrated brow
             if is_smiling and (smile_srv >= 35.0 or r_width >= 0.91):
                 score_pct = round(max(18.0, min(30.0, 25.0)), 1)
-                status_badge = "[CHƯA ĐẠT: ĐANG CƯỜI - CẦN TẬP TRUNG]"
+                status_badge = "Chưa đạt • Cần tập trung"
                 rating = "FAIL"
                 clinical_insight = "Phát hiện nét mặt cười cợt hoặc thiếu tập trung. Thử thách này yêu cầu ánh mắt kiên định, khép chặt môi và hơi khép nhẹ chân mày."
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)
                 muscle_acts[target["primary_muscles"][1]] = round(score_pct + 1.0, 1)
             elif r_jaw >= 0.65:
                 score_pct = 20.0
-                status_badge = "[CHƯA ĐẠT: CẦN KHÉP CHẶT MÔI]"
+                status_badge = "Chưa đạt • Cần khép chặt môi"
                 rating = "FAIL"
                 clinical_insight = "Miệng đang mở rộng. Hãy khép chặt môi và tập trung cao độ vào tâm màn hình."
                 muscle_acts[target["primary_muscles"][0]] = 18.0
@@ -317,7 +317,7 @@ class MimicMatchGameEngine:
             elif glabella_act < 20.0:
                 # Completely relaxed without active focus engagement
                 score_pct = round(max(55.0, min(68.0, 58.0 + (glabella_act / 20.0) * 10.0)), 1)
-                status_badge = "[CẦN TẬP TRUNG HƠN - HƠI KHÉP NHẸ CHÂN MÀY]"
+                status_badge = "Cần tập trung hơn • Hơi khép nhẹ chân mày"
                 rating = "ACCEPTABLE"
                 clinical_insight = "Nét mặt đang thả lỏng tự nhiên nhưng chưa kích hoạt phức hợp cơ hạ mày. Hãy nhìn thẳng vào tâm camera, hơi khép nhẹ chân mày để tập trung cao độ."
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)
@@ -328,7 +328,7 @@ class MimicMatchGameEngine:
                 m1 = round(min(94.0, 84.0 + focus_boost), 1)
                 m2 = round(min(93.0, 83.0 + focus_boost), 1)
                 score_pct = round(0.5 * m1 + 0.5 * m2, 1)
-                status_badge = "[XUẤT SẮC - TẬP TRUNG CAO ĐỘ]"
+                status_badge = "Xuất sắc • Tập trung cao độ"
                 rating = "PASS"
                 clinical_insight = "Ánh mắt kiên định, phức hợp cơ hạ mày và cơ tháp hội tụ chuẩn xác về trục thị giác trung tâm, tối ưu hóa năng lượng nhận thức."
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -339,7 +339,7 @@ class MimicMatchGameEngine:
             # In resting face, r_width is 0.81 - 0.87. Pursed lips narrows to <= 0.73!
             if is_smiling and (smile_srv >= 35.0 or r_width >= 0.90):
                 score_pct = round(max(15.0, min(26.0, 22.0)), 1)
-                status_badge = "[CHƯA ĐẠT: ĐANG CƯỜI THAY VÌ THỞ RA]"
+                status_badge = "Chưa đạt • Chúm môi thở ra thay vì cười"
                 rating = "FAIL"
                 clinical_insight = "Bạn đang cười làm mở rộng khóe môi. Thử thách này yêu cầu chúm môi hẹp lại như đang thổi tắt một ngọn nến!"
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)
@@ -350,7 +350,7 @@ class MimicMatchGameEngine:
                 m1 = round(min(95.0, 84.0 + pucker_boost), 1)
                 m2 = round(min(94.0, 83.0 + pucker_boost), 1)
                 score_pct = round(0.5 * m1 + 0.5 * m2, 1)
-                status_badge = "[XUẤT SẮC - THỞ RA GIẢI TỎA]"
+                status_badge = "Xuất sắc • Thở ra giải tỏa"
                 rating = "PASS"
                 clinical_insight = "Giải phóng trương lực cơ mút và cơ vòng miệng qua kỹ thuật thở chúm môi kéo dài, kích thích hệ thần kinh đối giao cảm."
                 muscle_acts[target["primary_muscles"][0]] = m1
@@ -358,7 +358,7 @@ class MimicMatchGameEngine:
             elif r_width <= 0.77:
                 # Moderate pursing
                 score_pct = round(max(62.0, min(76.0, 62.0 + (0.77 - r_width) * 300.0)), 1)
-                status_badge = "[ĐẠT MỨC KHÁ: HÃY CHÚM MÔI HẸP HƠN]"
+                status_badge = "Đạt mức khá • Hãy chúm môi hẹp hơn"
                 rating = "ACCEPTABLE"
                 clinical_insight = "Đã có phản xạ chúm môi nhưng khẩu hình chưa thật sự thu hẹp tối đa. Hãy chúm hai môi nhỏ lại như đang huýt sáo!"
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)
@@ -366,7 +366,7 @@ class MimicMatchGameEngine:
             else:
                 # Normal un-pursed mouth (r_width >= 0.78): FAIL
                 score_pct = round(max(22.0, min(45.0, 40.0 - (r_width - 0.78) * 120.0)), 1)
-                status_badge = "[CHƯA ĐẠT: HÃY CHÚM HAI MÔI NHỎ LẠI NHƯ THỔI NẾN]"
+                status_badge = "Chưa đạt • Hãy chúm môi nhỏ như thổi nến"
                 rating = "FAIL"
                 clinical_insight = "Khẩu hình miệng chưa đủ hẹp. Hãy chúm hai môi lại tròn nhỏ như đang huýt sáo hoặc thổi nhẹ vào một ngọn nến!"
                 muscle_acts[target["primary_muscles"][0]] = round(score_pct - 2.0, 1)

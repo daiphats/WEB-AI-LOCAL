@@ -226,10 +226,10 @@ class AcousticTherapyManager {
   notifyIntervention(type, message) {
     const badge = document.getElementById("acoustic-intervention-badge");
     if (badge) {
-      badge.textContent = `[ACOUSTIC: ${type}]`;
+      badge.textContent = `Âm học: ${type}`;
       badge.className = "badge badge-clinical";
       setTimeout(() => {
-        badge.textContent = "[ACOUSTIC: STANDBY]";
+        badge.textContent = "Âm học: Chờ kích hoạt";
         badge.className = "badge badge-neutral";
       }, 6000);
     }

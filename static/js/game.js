@@ -30,13 +30,13 @@ class MimicMatchGame {
       }
       if (standbyOverlay) standbyOverlay.style.display = "none";
       if (camBadge) {
-        camBadge.textContent = "[CAMERA TRỰC TIẾP]";
+        camBadge.textContent = "Camera trực tiếp";
         camBadge.className = "badge badge-success";
       }
     } else {
       if (standbyOverlay) standbyOverlay.style.display = "flex";
       if (camBadge) {
-        camBadge.textContent = "[CAMERA ĐANG TẮT]";
+        camBadge.textContent = "Camera chưa kích hoạt";
         camBadge.className = "badge badge-warning";
       }
     }
@@ -135,7 +135,7 @@ class MimicMatchGame {
     // Reset result badge
     const badgeEl = document.getElementById("game-result-badge");
     if (badgeEl) {
-      badgeEl.textContent = "[READY: CHỜ BẮT ĐẦU]";
+      badgeEl.textContent = "Sẵn sàng";
       badgeEl.className = "badge badge-neutral";
     }
   }
@@ -313,7 +313,7 @@ class MimicMatchGame {
     if (hudStreak) hudStreak.textContent = res.streak;
     if (hudHighScore) hudHighScore.textContent = `${res.session_high_score}%`;
     if (hudRating) {
-      hudRating.textContent = res.rating === "PASS" ? "ĐẠT" : (res.rating === "ACCEPTABLE" ? "CHẤP NHẬN" : "THỬ LẠI");
+      hudRating.textContent = res.rating === "PASS" ? "Đạt" : (res.rating === "ACCEPTABLE" ? "Chấp nhận" : "Thử lại");
     }
 
     if (hudMusclesRow && res.muscle_feedback) {

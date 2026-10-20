@@ -8,38 +8,38 @@
    ========================================================================== */
 
 :root {
-  --bg-primary: #F1F5F9;
-  --bg-surface: rgba(255, 255, 255, 0.75);
-  --bg-surface-elevated: rgba(255, 255, 255, 0.90);
-  --bg-card: rgba(255, 255, 255, 0.82);
-  --bg-card-subtle: rgba(248, 250, 252, 0.85);
+  --bg-primary: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-subtle: #F1F5F9;
   
-  --border-subtle: rgba(0, 0, 0, 0.07);
-  --border-active: rgba(15, 23, 42, 0.25);
-  --border-glass: rgba(255, 255, 255, 0.8);
+  --border-subtle: #CBD5E1;
+  --border-active: #0E7490;
+  --border-glass: #94A3B8;
   
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --text-subtle: #94A3B8;
+  --text-primary: #090D16;
+  --text-secondary: #1E293B;
+  --text-muted: #334155;
+  --text-subtle: #475569;
 
-  --accent-clinical: #0284C7;
-  --accent-clinical-soft: rgba(2, 132, 199, 0.10);
-  --accent-success: #059669;
-  --accent-success-soft: rgba(5, 150, 105, 0.10);
-  --accent-warning: #D97706;
-  --accent-warning-soft: rgba(217, 119, 6, 0.10);
-  --accent-danger: #DC2626;
-  --accent-danger-soft: rgba(220, 38, 38, 0.10);
+  --accent-clinical: #0E7490;
+  --accent-clinical-soft: rgba(14, 116, 144, 0.12);
+  --accent-success: #047857;
+  --accent-success-soft: rgba(4, 120, 87, 0.12);
+  --accent-warning: #B45309;
+  --accent-warning-soft: rgba(180, 83, 9, 0.12);
+  --accent-danger: #B91C1C;
+  --accent-danger-soft: rgba(185, 28, 28, 0.12);
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 12px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.09), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --shadow-glass: 0 2px 8px rgba(15, 23, 42, 0.04);
 
   --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
   --radius-full: 9999px;
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -52,39 +52,80 @@
   padding: 0;
 }
 
+html {
+  font-size: 15px;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
-  background-image: 
-    radial-gradient(at 10% 10%, rgba(224, 231, 255, 0.45) 0px, transparent 50%),
-    radial-gradient(at 90% 90%, rgba(207, 250, 254, 0.40) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(241, 245, 249, 1) 0px, transparent 100%);
+  background-image: radial-gradient(#CBD5E1 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
+  line-height: 1.6;
   display: flex;
   flex-direction: column;
 }
 
-/* Glassmorphism Surface Utility */
+/* Global Typography Readability & Contrast Guarantees */
+.cell-label, .form-label, .channel-name, .channel-val, .brand-badge,
+.step-badge, .hud-overlay-text, .identity-date, .identity-vec,
+.controller-mic-label, .controller-mic-val, .cbt-suggestion-chips .chip-btn,
+.data-table th, .data-table td, .prescription-title, .prescription-desc {
+  font-size: 0.80rem !important;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cell-value {
+  font-size: 1.25rem !important;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.brand-badge {
+  font-size: 0.74rem !important;
+  font-weight: 700;
+}
+
+.tab-btn {
+  font-size: 0.82rem !important;
+  font-weight: 600;
+}
+
+.btn {
+  font-size: 0.84rem !important;
+}
+
+/* Force high contrast and legible sizing on faint inline styles */
+[style*="color:#94A3B8"], [style*="color: #94A3B8"],
+[style*="color:#CBD5E1"], [style*="color: #CBD5E1"],
+[style*="color:rgba(255,255,255,0.7)"], [style*="color: rgba(255,255,255,0.7)"] {
+  color: var(--text-muted) !important;
+}
+
+[style*="font-size:0.5"], [style*="font-size: 0.5"],
+[style*="font-size:0.6"], [style*="font-size: 0.6"],
+[style*="font-size:0.70"], [style*="font-size: 0.70"],
+[style*="font-size:0.72"], [style*="font-size: 0.72"] {
+  font-size: 0.80rem !important;
+}
+
+/* Clinical Surface Utility - Solid High Contrast */
 .glass-panel {
   background: var(--bg-surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
-  border-top-color: var(--border-glass);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-glass);
+  box-shadow: var(--shadow-sm);
 }
 
 .glass-panel-elevated {
   background: var(--bg-surface-elevated);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(0, 0, 0, 0.09);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
 }
@@ -210,14 +251,14 @@ body {
   gap: 0.75rem;
 }
 
-/* Typographic Badges */
+/* Clean Clinical Status Badges */
 .badge {
-  font-family: var(--font-mono);
-  font-size: 0.70rem;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.25rem 0.55rem;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  padding: 0.28rem 0.65rem;
   border-radius: var(--radius-xs);
   display: inline-flex;
   align-items: center;
@@ -226,33 +267,33 @@ body {
 }
 
 .badge-neutral {
-  background: rgba(100, 116, 139, 0.08);
+  background: var(--bg-card-subtle);
   color: var(--text-secondary);
-  border-color: rgba(100, 116, 139, 0.15);
+  border-color: var(--border-subtle);
 }
 
 .badge-clinical {
   background: var(--accent-clinical-soft);
   color: var(--accent-clinical);
-  border-color: rgba(2, 132, 199, 0.20);
+  border-color: rgba(14, 116, 144, 0.22);
 }
 
 .badge-success {
   background: var(--accent-success-soft);
   color: var(--accent-success);
-  border-color: rgba(5, 150, 105, 0.20);
+  border-color: rgba(5, 150, 105, 0.22);
 }
 
 .badge-warning {
   background: var(--accent-warning-soft);
   color: var(--accent-warning);
-  border-color: rgba(217, 119, 6, 0.20);
+  border-color: rgba(217, 119, 6, 0.22);
 }
 
 .badge-danger {
   background: var(--accent-danger-soft);
   color: var(--accent-danger);
-  border-color: rgba(220, 38, 38, 0.20);
+  border-color: rgba(220, 38, 38, 0.22);
 }
 
 .status-dot {
@@ -328,10 +369,10 @@ body {
 }
 
 .card-title {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.94rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--text-primary);
 }
 
@@ -423,19 +464,20 @@ body {
 }
 
 .cell-label {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: none;
+  color: var(--text-secondary);
+  letter-spacing: normal;
 }
 
 .cell-value {
   font-family: var(--font-mono);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
 }
 
 .channel-bars-section {
@@ -512,12 +554,12 @@ body {
 
 /* Buttons */
 .btn {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0.55rem 1.1rem;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  padding: 0.55rem 1.15rem;
   border-radius: var(--radius-xs);
   border: 1px solid transparent;
   cursor: pointer;
@@ -529,24 +571,24 @@ body {
 }
 
 .btn-primary {
-  background: #0F172A;
+  background: #0E7490;
   color: #FFFFFF;
 }
 
 .btn-primary:hover {
-  background: #1E293B;
+  background: #0891B2;
   box-shadow: var(--shadow-sm);
 }
 
 .btn-outline {
   background: #FFFFFF;
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
+  border-color: #CBD5E1;
+  color: #0F172A;
 }
 
 .btn-outline:hover {
-  background: #F8FAFC;
-  border-color: var(--border-active);
+  background: #F1F5F9;
+  border-color: #94A3B8;
 }
 
 .btn-danger {
@@ -2184,18 +2226,18 @@ input:checked + .slider:before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--border-subtle);
+  padding: 0.28rem 0.7rem;
   border-radius: var(--radius-full);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem !important;
   font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.03em;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  letter-spacing: -0.01em;
+  box-shadow: var(--shadow-sm);
 }
 
 .multiverse-hud-bottom {

@@ -1130,16 +1130,16 @@ class FutureMultiverseSimulation {
   handleCameraError(err) {
     const desc = document.getElementById("multiverse-standby-desc");
     if (desc) {
-      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        desc.textContent = "QUYỀN TRUY CẬP CAMERA BỊ TỪ CHỐI. Vui lòng nhấn vào biểu tượng ổ khóa trên thanh địa chỉ trình duyệt để cấp quyền camera!";
-        desc.style.color = "#F87171";
+      if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+        desc.textContent = "Trình duyệt chặn truy cập camera qua mạng LAN. Vui lòng truy cập bằng localhost hoặc HTTPS.";
+      } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        desc.textContent = "Quyền truy cập camera bị từ chối. Vui lòng nhấn vào biểu tượng ổ khóa trên thanh địa chỉ trình duyệt để cấp quyền camera.";
       } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-        desc.textContent = "KHÔNG TÌM THẤY THIẾT BỊ CAMERA. Vui lòng kiểm tra cáp cắm webcam hoặc quyền truy cập phần cứng!";
-        desc.style.color = "#F87171";
+        desc.textContent = "Không tìm thấy thiết bị camera. Vui lòng kiểm tra kết nối webcam hoặc đảm bảo ứng dụng khác không chiếm giữ camera.";
       } else {
-        desc.textContent = `LỖI CAMERA: ${err.message || "Thiết bị đang bận hoặc bị ứng dụng khác chiếm giữ."}`;
-        desc.style.color = "#F87171";
+        desc.textContent = "Không thể truy cập camera. Vui lòng cấp quyền camera trên trình duyệt hoặc kiểm tra thiết bị.";
       }
+      desc.style.color = "#DC2626";
     }
   }
 
