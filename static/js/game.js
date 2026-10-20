@@ -253,10 +253,16 @@ class MimicMatchGame {
         })
       });
 
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const result = await res.json();
       this.displayEvaluationResult(result);
     } catch (err) {
       console.error("[GAME] Evaluation error:", err);
+      const badgeEl = document.getElementById("game-result-badge");
+      if (badgeEl) {
+        badgeEl.textContent = "Lỗi kết nối";
+        badgeEl.className = "badge badge-danger";
+      }
     }
   }
 

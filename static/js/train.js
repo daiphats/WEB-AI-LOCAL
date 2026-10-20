@@ -20,12 +20,9 @@ class TrainingStudioManager {
     this.startHardwareTelemetry();
     this.loadCognitiveInspectorData();
 
-    // Check if session already authenticated
-    if (sessionStorage.getItem("station_biometric_auth") === "true") {
-      this.unlockGateSilently();
-    } else {
-      this.startGateCamera();
-    }
+    // Privileged Biometric Gate always requires live face scan
+    sessionStorage.removeItem("station_biometric_auth");
+    this.startGateCamera();
   }
 
   showWebModal(title, message, type = "warning", onClose = null) {
@@ -89,8 +86,8 @@ class TrainingStudioManager {
       video.srcObject = this.gateStream;
       await video.play();
 
-      // Initiate initial automatic verification scan after 1.2s
-      setTimeout(() => this.scanGateBiometrics(), 1200);
+      // Start continuous intelligent scanning loop
+      this.startGateAutoScan();
     } catch (err) {
       console.warn("[GATE] Camera access failed:", err);
       const statusEl = document.getElementById("gate-status-badge");
@@ -105,19 +102,38 @@ class TrainingStudioManager {
     }
   }
 
+  startGateAutoScan() {
+    if (this.gateScanInterval) clearInterval(this.gateScanInterval);
+    // Initial quick scan
+    setTimeout(() => {
+      if (!this.isAuthenticated) this.scanGateBiometrics();
+    }, 400);
+
+    // Continuous responsive scanning loop every 850ms
+    this.gateScanInterval = setInterval(() => {
+      if (this.isAuthenticated) {
+        clearInterval(this.gateScanInterval);
+        this.gateScanInterval = null;
+        return;
+      }
+      if (!this.isScanningGate) {
+        this.scanGateBiometrics();
+      }
+    }, 850);
+  }
+
   async scanGateBiometrics() {
+    if (this.isScanningGate) return;
+    this.isScanningGate = true;
+
     const video = document.getElementById("gate-video");
     const statusEl = document.getElementById("gate-status-badge");
     const scoreEl = document.getElementById("gate-score-metric");
 
     if (!video || !video.videoWidth) {
       if (statusEl) statusEl.textContent = "Đang chờ tín hiệu camera...";
+      this.isScanningGate = false;
       return;
-    }
-
-    if (statusEl) {
-      statusEl.textContent = "Đang phân tích vector sinh trắc học...";
-      statusEl.className = "badge badge-clinical";
     }
 
     const canvas = document.createElement("canvas");
@@ -135,9 +151,22 @@ class TrainingStudioManager {
       });
       const data = await res.json();
 
-      if (scoreEl) scoreEl.textContent = `Độ tương đồng Cosine: ${data.score}% / Ngưỡng đạt ${data.threshold}%`;
+      if (data.needs_enrollment) {
+        if (scoreEl) scoreEl.textContent = `Trạng thái: Chờ thiết lập khuôn mặt Quản trị viên (Ngưỡng yêu cầu: ${data.threshold}%)`;
+        if (statusEl) {
+          statusEl.textContent = data.message;
+          statusEl.className = "badge badge-warning";
+        }
+        return;
+      }
+
+      if (scoreEl) scoreEl.textContent = `Độ tương đồng sinh trắc: ${data.score}% / Ngưỡng đạt ${data.threshold}%`;
 
       if (data.authenticated) {
+        if (this.gateScanInterval) {
+          clearInterval(this.gateScanInterval);
+          this.gateScanInterval = null;
+        }
         if (statusEl) {
           statusEl.textContent = data.message;
           statusEl.className = "badge badge-success";
@@ -156,6 +185,8 @@ class TrainingStudioManager {
         statusEl.textContent = "Lỗi kết nối hoặc xử lý sinh trắc học";
         statusEl.className = "badge badge-danger";
       }
+    } finally {
+      this.isScanningGate = false;
     }
   }
 
@@ -189,6 +220,10 @@ class TrainingStudioManager {
 
   unlockGate() {
     this.isAuthenticated = true;
+    if (this.gateScanInterval) {
+      clearInterval(this.gateScanInterval);
+      this.gateScanInterval = null;
+    }
     const overlay = document.getElementById("biometric-gate-overlay");
     if (overlay) {
       overlay.classList.add("unlocked");

@@ -1251,7 +1251,7 @@ class ClinicalStationApp {
       btn.disabled = true;
       btn.innerHTML = `
         <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#EF4444; box-shadow:0 0 8px #EF4444; margin-right:6px;"></span>
-        Đang ghi âm (3.5s)...
+        Đang ghi âm 3.5 giây...
       `;
       btn.className = "btn btn-danger";
     });
@@ -1282,6 +1282,9 @@ class ClinicalStationApp {
       });
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       micCtx = new AudioCtx();
+      if (micCtx.state === "suspended") {
+        try { await micCtx.resume(); } catch (e) { }
+      }
       const source = micCtx.createMediaStreamSource(micStream);
 
       // Create live VU analyzer for real-time visualization
@@ -1390,7 +1393,7 @@ class ClinicalStationApp {
               <line x1="12" y1="19" x2="12" y2="23"/>
               <line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
-            Bắt đầu ghi âm (3.5s)
+            Bắt đầu ghi âm
           `;
           btn.className = "btn btn-primary";
         });
@@ -1441,10 +1444,10 @@ class ClinicalStationApp {
       el.style.color = confidence >= 75 ? "#10B981" : "#F59E0B";
     });
     cardEnergies.forEach(el => {
-      el.textContent = `${energyLabel} (${energyPct}%)`;
+      el.textContent = `${energyLabel} • ${energyPct}%`;
     });
     cardDurations.forEach(el => {
-      el.textContent = `${duration}s (F0: ${Math.round(pitchHz)}Hz)`;
+      el.textContent = `${duration}s • F0 ${Math.round(pitchHz)}Hz`;
     });
     cardInsights.forEach(el => {
       el.textContent = insight;
@@ -1452,7 +1455,7 @@ class ClinicalStationApp {
 
     const statusTexts = [document.getElementById("tab3-vocal-status-text"), document.getElementById("vocal-status-text")].filter(Boolean);
     statusTexts.forEach(st => {
-      st.textContent = `[HOÀN TẤT: ${meta.short} • TIN CẬY ${confidence}%]`;
+      st.textContent = `Hoàn tất: ${meta.short} • Độ tin cậy ${confidence}%`;
       st.style.color = meta.color;
     });
 
@@ -1463,7 +1466,7 @@ class ClinicalStationApp {
     const confMetric = document.getElementById("metric-confidence");
 
     if (speechStatus) {
-      speechStatus.textContent = `${meta.short} (${confidence}%) • Năng lượng: ${energyLabel}`;
+      speechStatus.textContent = `${meta.short} • Độ tin cậy ${confidence}% • Năng lượng ${energyLabel}`;
     }
     if (speechBar) {
       speechBar.style.width = `${Math.min(100, Math.max(20, confidence))}%`;
@@ -1475,13 +1478,33 @@ class ClinicalStationApp {
       confMetric.textContent = `${confidence}%`;
     }
 
-    // Populate Tab 1 & Tab 3 result boxes
+    // Populate Tab 1 & Tab 3 result boxes with beautiful structured card
     const reportBoxes = [document.getElementById("tab3-vocal-report-result"), document.getElementById("vocal-report-result")].filter(Boolean);
     reportBoxes.forEach(rb => {
       rb.style.display = "block";
       rb.innerHTML = `
-        <div style="font-family:var(--font-mono); font-size:0.75rem; padding:0.4rem; background:rgba(0,0,0,0.03); border-radius:4px;">
-          <strong>${meta.label}</strong> (${confidence}%) | Energy: ${energy} | Duration: ${duration}s | F0: ${Math.round(pitchHz)}Hz
+        <div style="padding:0.75rem; border-radius:6px; background:rgba(0,0,0,0.02); border:1px solid var(--border-subtle);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="font-weight:700; font-size:0.86rem; color:${meta.color};">${meta.label}</span>
+            <span class="badge badge-success" style="font-size:0.72rem; padding:2px 8px;">Độ tin cậy ${confidence}%</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; margin-bottom:0.5rem; font-size:0.75rem; font-family:var(--font-mono);">
+            <div style="background:#FFFFFF; padding:0.4rem 0.5rem; border-radius:4px; border:1px solid var(--border-subtle);">
+              <span style="color:var(--text-secondary); display:block; font-size:0.70rem;">Cường độ:</span>
+              <strong>${energyLabel}</strong>
+            </div>
+            <div style="background:#FFFFFF; padding:0.4rem 0.5rem; border-radius:4px; border:1px solid var(--border-subtle);">
+              <span style="color:var(--text-secondary); display:block; font-size:0.70rem;">Thời lượng:</span>
+              <strong>${duration}s</strong>
+            </div>
+            <div style="background:#FFFFFF; padding:0.4rem 0.5rem; border-radius:4px; border:1px solid var(--border-subtle);">
+              <span style="color:var(--text-secondary); display:block; font-size:0.70rem;">Cao độ F0:</span>
+              <strong>${Math.round(pitchHz)}Hz</strong>
+            </div>
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-secondary); line-height:1.45; border-top:1px dashed var(--border-subtle); padding-top:0.4rem;">
+            ${insight}
+          </div>
         </div>
       `;
     });
@@ -1677,8 +1700,8 @@ class ClinicalStationApp {
     if (!this.lastFaceDetected) {
       this.isAssessing = false;
       this.showWebModal(
-        "[CHƯA PHÁT HIỆN KHUÔN MẶT]",
-        "Camera chưa phát hiện thấy khuôn mặt của bạn trong khung hình.\n\nVui lòng ngồi ngay ngắn trước camera (hoặc căn chỉnh góc máy) rồi bấm 'BẮT ĐẦU ĐÁNH GIÁ 3 BƯỚC' lại.",
+        "Chưa phát hiện khuôn mặt",
+        "Camera chưa phát hiện thấy khuôn mặt của bạn trong khung hình.\n\nVui lòng ngồi ngay ngắn trước camera rồi bấm Bắt đầu đánh giá 3 bước lại.",
         "danger"
       );
       return;
@@ -1705,97 +1728,7 @@ class ClinicalStationApp {
     const vuText = document.getElementById("step-mic-vu-text");
     const faceTrackingStatus = document.getElementById("step-face-tracking-status");
 
-    if (overlay) overlay.style.display = "flex";
-    if (faceTrackingStatus) {
-      faceTrackingStatus.textContent = "Đang theo dõi khuôn mặt";
-      faceTrackingStatus.style.color = "#10B981";
-    }
-
-    let capturedFaceB64 = null;
-    let recordedAudioBlob = null;
-    let avgMicVolume = 0;
-    let maxMicVolume = 0;
-    let faceSeenDuringTest = Boolean(this.lastFaceDetected);
-    let bestFaceFrame = null;
-    let bestSmileFrame = null;
-    let maxSmileObserved = 0;
-
-    // Continuous sampler: keep track of best face & smile frames throughout test
-    const frameSampler = setInterval(() => {
-      if (this.isAssessmentCancelled) return;
-      const f = this.captureWebcamFrame();
-      const faceBadge = document.getElementById("step-face-tracking-status");
-      if (f) {
-        if (!capturedFaceB64) capturedFaceB64 = f;
-        if (this.lastFaceDetected) {
-          faceSeenDuringTest = true;
-          bestFaceFrame = f;
-          if (faceBadge) {
-            faceBadge.textContent = "Đang theo dõi khuôn mặt";
-            faceBadge.style.color = "#10B981";
-          }
-        } else {
-          if (faceBadge) {
-            faceBadge.textContent = "Chưa phát hiện khuôn mặt";
-            faceBadge.style.color = "#EF4444";
-          }
-        }
-        if (this.isSmiling && this.smileScore > 40) {
-          faceSeenDuringTest = true;
-          const sc = Number(this.smileScore);
-          if (sc >= maxSmileObserved) {
-            maxSmileObserved = sc;
-            bestSmileFrame = f;
-          }
-        }
-      }
-    }, 280);
-
-    // -----------------------------------------------------------
-    // BƯỚC 1: Quét Khuôn Mặt & Trương Lực Cơ - 5 giây
-    // -----------------------------------------------------------
-    if (badge) badge.textContent = "BƯỚC 1/3: QUÉT KHUÔN MẶT VÀ TƯ THẾ - 5 GIÂY";
-    if (instruction) instruction.textContent = "Hãy ngồi thẳng trước camera, nhìn thẳng vào ống kính và giữ nét mặt tự nhiên...";
-    if (promptBox) promptBox.style.display = "none";
-
-    await this.runStepTimer(5, progressBar, timerLabel);
-
-    if (this.isAssessmentCancelled) {
-      clearInterval(frameSampler);
-      return;
-    }
-
-    // STRICT CHECK AFTER STEP 1: If no face was seen, ABORT immediately!
-    if (!this.lastFaceDetected && !bestFaceFrame) {
-      clearInterval(frameSampler);
-      if (overlay) overlay.style.display = "none";
-      this.isAssessing = false;
-      this.showWebModal(
-        "[HỦY ĐÁNH GIÁ - KHÔNG PHÁT HIỆN KHUÔN MẶT]",
-        "Hệ thống đã tự động hủy bài kiểm tra vì không phát hiện thấy khuôn mặt (hoặc khuôn mặt bị che khuất) trong suốt 5 giây quét.\n\nVui lòng ngồi trước camera và bấm 'BẮT ĐẦU ĐÁNH GIÁ 3 BƯỚC' để thử lại.",
-        "danger"
-      );
-      return;
-    }
-
-    if (!capturedFaceB64) capturedFaceB64 = this.captureWebcamFrame();
-    if (this.lastFaceDetected) faceSeenDuringTest = true;
-
-    // -----------------------------------------------------------
-    // BƯỚC 2: Đọc Đoạn Văn & Ghi Âm Giọng Nói - 7 giây
-    // -----------------------------------------------------------
-    if (badge) badge.textContent = "BƯỚC 2/3: PHÂN TÍCH GIỌNG NÓI VÀ NÉT MẶT - 7 GIÂY";
-    if (instruction) instruction.textContent = "Hãy đọc to câu bên dưới vào micro để AI đo lường độ đồng pha cảm xúc và âm phổ:";
-    if (promptBox) {
-      promptBox.style.display = "block";
-      if (promptText && this.currentPrompt) {
-        promptText.textContent = `"${this.currentPrompt.prompt_text}"`;
-      }
-    }
-    if (vuBar) vuBar.style.width = "0%";
-    if (vuText) vuText.textContent = "0%";
-
-    // Set up Real Microphone AudioContext, MediaRecorder & Speech Recognition
+    let frameSampler = null;
     let audioStream = null;
     let audioCtx = null;
     let analyserNode = null;
@@ -1804,240 +1737,357 @@ class ClinicalStationApp {
     let audioChunks = [];
     let volSum = 0;
     let volCount = 0;
-
-    // Web Speech API for Vietnamese speech transcription
+    let step2PcmSamples = [];
+    let step2Processor = null;
     let speechRecognizer = null;
     let recognizedTranscript = "";
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRec) {
-      try {
-        speechRecognizer = new SpeechRec();
-        speechRecognizer.continuous = true;
-        speechRecognizer.interimResults = true;
-        speechRecognizer.lang = "vi-VN";
-        speechRecognizer.onresult = (ev) => {
-          let current = "";
-          for (let i = 0; i < ev.results.length; i++) {
-            current += ev.results[i][0].transcript + " ";
-          }
-          if (current.trim().length > 0) {
-            recognizedTranscript = current.trim();
-          }
-        };
-        speechRecognizer.onerror = (e) => {
-          console.log("[SPEECH REC] Event:", e.error);
-        };
-        speechRecognizer.start();
-      } catch (err) {
-        console.warn("[SPEECH REC] Init note:", err);
-      }
-    }
-
     let vocalEnergySamples = [];
     let vocalBurstCount = 0;
     let inBurst = false;
+    let avgMicVolume = 0;
+    let maxMicVolume = 0;
+    let capturedFaceB64 = null;
+    let recordedAudioBlob = null;
+    let faceSeenDuringTest = Boolean(this.lastFaceDetected);
+    let bestFaceFrame = null;
+    let bestSmileFrame = null;
+    let maxSmileObserved = 0;
 
     try {
-      audioStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const source = audioCtx.createMediaStreamSource(audioStream);
-      analyserNode = audioCtx.createAnalyser();
-      analyserNode.fftSize = 512;
-      analyserNode.smoothingTimeConstant = 0.3;
-      source.connect(analyserNode);
-
-      // Real PCM capture for SpeechEmotionAnalyzer
-      let step2PcmSamples = [];
-      let step2Processor = null;
-      try {
-        step2Processor = audioCtx.createScriptProcessor(4096, 1, 1);
-        step2Processor.onaudioprocess = (e) => {
-          const inp = e.inputBuffer.getChannelData(0);
-          for (let i = 0; i < inp.length; i++) {
-            step2PcmSamples.push(inp[i]);
-          }
-        };
-        source.connect(step2Processor);
-        step2Processor.connect(audioCtx.destination);
-      } catch (procErr) {
-        console.warn("[ASSESSMENT] ScriptProcessor init note:", procErr);
+      if (overlay) overlay.style.display = "flex";
+      if (faceTrackingStatus) {
+        faceTrackingStatus.textContent = "Đang theo dõi khuôn mặt";
+        faceTrackingStatus.style.color = "#10B981";
       }
 
-      const timeData = new Uint8Array(analyserNode.fftSize);
-
-      vuInterval = setInterval(() => {
+      // Continuous sampler: keep track of best face & smile frames throughout test
+      frameSampler = setInterval(() => {
         if (this.isAssessmentCancelled) return;
-        analyserNode.getByteTimeDomainData(timeData);
-
-        // Accurate Time-Domain RMS Volume calculation
-        let sumSq = 0;
-        for (let i = 0; i < timeData.length; i++) {
-          const val = (timeData[i] - 128) / 128.0;
-          sumSq += val * val;
+        const f = this.captureWebcamFrame();
+        const faceBadge = document.getElementById("step-face-tracking-status");
+        if (f) {
+          if (!capturedFaceB64) capturedFaceB64 = f;
+          if (this.lastFaceDetected) {
+            faceSeenDuringTest = true;
+            bestFaceFrame = f;
+            if (faceBadge) {
+              faceBadge.textContent = "Đang theo dõi khuôn mặt";
+              faceBadge.style.color = "#10B981";
+            }
+          } else {
+            if (faceBadge) {
+              faceBadge.textContent = "Chưa phát hiện khuôn mặt";
+              faceBadge.style.color = "#EF4444";
+            }
+          }
+          if (this.isSmiling && this.smileScore > 40) {
+            faceSeenDuringTest = true;
+            const sc = Number(this.smileScore);
+            if (sc >= maxSmileObserved) {
+              maxSmileObserved = sc;
+              bestSmileFrame = f;
+            }
+          }
         }
-        const rms = Math.sqrt(sumSq / timeData.length); // 0.0 to 1.0
+      }, 280);
 
-        // Noise gate: background noise or quiet breathing is < 0.015
-        const gatedRms = Math.max(0, rms - 0.015);
-        const floatVol = gatedRms;
-        vocalEnergySamples.push(floatVol);
+      // -----------------------------------------------------------
+      // BƯỚC 1: Quét Khuôn Mặt & Trương Lực Cơ - 5 giây
+      // -----------------------------------------------------------
+      if (badge) badge.textContent = "Bước 1/3: Quét khuôn mặt và tư thế - 5 giây";
+      if (instruction) instruction.textContent = "Hãy ngồi thẳng trước camera, nhìn thẳng vào ống kính và giữ nét mặt tự nhiên...";
+      if (promptBox) promptBox.style.display = "none";
+      if (progressBar) progressBar.style.width = "100%";
+      if (timerLabel) timerLabel.textContent = "Còn 5 giây...";
 
-        if (floatVol > maxMicVolume) maxMicVolume = floatVol;
-        volSum += floatVol;
-        volCount++;
+      await this.runStepTimer(5, progressBar, timerLabel);
 
-        // Speech burst detection: real syllables produce dynamic pulses above 0.035
-        if (floatVol > 0.035 && !inBurst) {
-          inBurst = true;
-          vocalBurstCount++;
-        } else if (floatVol < 0.018 && inBurst) {
-          inBurst = false;
-        }
+      if (this.isAssessmentCancelled) return;
 
-        if (this.lastFaceDetected) faceSeenDuringTest = true;
+      // STRICT CHECK AFTER STEP 1: If no face was seen, ABORT immediately!
+      if (!this.lastFaceDetected && !bestFaceFrame) {
+        if (overlay) overlay.style.display = "none";
+        this.showWebModal(
+          "Không phát hiện khuôn mặt",
+          "Hệ thống tự động dừng bài kiểm tra vì không phát hiện thấy khuôn mặt trong suốt 5 giây quét.\n\nVui lòng ngồi trước camera và bấm Bắt đầu đánh giá 3 bước để thử lại.",
+          "danger"
+        );
+        return;
+      }
 
-        // Accurate, responsive VU meter (0% at silence, 20-75% when reading, 100% when shouting)
-        const norm = Math.min(100, Math.round((gatedRms / 0.22) * 100));
-        if (vuBar) {
-          vuBar.style.width = `${norm}%`;
-          vuBar.style.background = norm > 5 ? "#10B981" : "#64748B";
-        }
-        if (vuText) {
-          vuText.textContent = `${norm}%`;
-          vuText.style.color = norm > 5 ? "#34D399" : "#94A3B8";
-        }
-      }, 50);
+      if (!capturedFaceB64) capturedFaceB64 = this.captureWebcamFrame();
+      if (this.lastFaceDetected) faceSeenDuringTest = true;
 
-      // Setup MediaRecorder for genuine playback
-      let mimeType = "audio/webm";
-      if (typeof MediaRecorder.isTypeSupported === "function") {
-        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-          mimeType = "audio/webm;codecs=opus";
-        } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
-          mimeType = "audio/ogg;codecs=opus";
+      // -----------------------------------------------------------
+      // BƯỚC 2: Đọc Đoạn Văn & Ghi Âm Giọng Nói - 7 giây
+      // -----------------------------------------------------------
+      if (badge) badge.textContent = "Bước 2/3: Phân tích giọng nói và nét mặt - 7 giây";
+      if (instruction) instruction.textContent = "Hãy đọc to câu bên dưới vào micro để AI đo lường độ đồng pha cảm xúc và âm phổ:";
+      if (promptBox) {
+        promptBox.style.display = "block";
+        if (promptText && this.currentPrompt) {
+          promptText.textContent = `"${this.currentPrompt.prompt_text}"`;
         }
       }
-      mediaRecorder = new MediaRecorder(audioStream, { mimeType: mimeType });
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) audioChunks.push(e.data);
-      };
-      mediaRecorder.start(250);
-    } catch (err) {
-      console.warn("[ASSESSMENT] Không thể truy cập Microphone:", err);
-    }
+      if (vuBar) vuBar.style.width = "0%";
+      if (vuText) vuText.textContent = "0%";
+      if (progressBar) progressBar.style.width = "100%";
+      if (timerLabel) timerLabel.textContent = "Còn 7 giây...";
 
-    if (window.acousticEngine) window.acousticEngine.play432HzChime();
-    await this.runStepTimer(7, progressBar, timerLabel);
+      // Web Speech recognition for transcription
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRec) {
+        try {
+          speechRecognizer = new SpeechRec();
+          speechRecognizer.continuous = true;
+          speechRecognizer.interimResults = true;
+          speechRecognizer.lang = "vi-VN";
+          speechRecognizer.onresult = (ev) => {
+            let current = "";
+            for (let i = 0; i < ev.results.length; i++) {
+              current += ev.results[i][0].transcript + " ";
+            }
+            if (current.trim().length > 0) {
+              recognizedTranscript = current.trim();
+            }
+          };
+          speechRecognizer.onerror = (e) => {
+            console.log("[SPEECH REC] Event:", e.error);
+          };
+          speechRecognizer.start();
+        } catch (err) {
+          console.warn("[SPEECH REC] Init note:", err);
+        }
+      }
 
-    if (speechRecognizer) {
-      try { speechRecognizer.stop(); } catch (e) { }
-    }
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioCtx();
+        if (audioCtx.state === "suspended") {
+          try { await audioCtx.resume(); } catch (e) { }
+        }
+        const source = audioCtx.createMediaStreamSource(audioStream);
+        analyserNode = audioCtx.createAnalyser();
+        analyserNode.fftSize = 512;
+        analyserNode.smoothingTimeConstant = 0.3;
+        source.connect(analyserNode);
 
-    if (this.isAssessmentCancelled) {
-      clearInterval(frameSampler);
-      if (vuInterval) clearInterval(vuInterval);
-      if (audioStream) audioStream.getTracks().forEach(t => t.stop());
-      return;
-    }
+        // Real PCM capture for SpeechEmotionAnalyzer
+        step2PcmSamples = [];
+        try {
+          step2Processor = audioCtx.createScriptProcessor(4096, 1, 1);
+          step2Processor.onaudioprocess = (e) => {
+            const inp = e.inputBuffer.getChannelData(0);
+            for (let i = 0; i < inp.length; i++) {
+              step2PcmSamples.push(inp[i]);
+            }
+          };
+          source.connect(step2Processor);
+          step2Processor.connect(audioCtx.destination);
+        } catch (procErr) {
+          console.warn("[ASSESSMENT] ScriptProcessor init note:", procErr);
+        }
 
-    // Stop Microphone & MediaRecorder
-    if (vuInterval) {
-      clearInterval(vuInterval);
-      vuInterval = null;
-    }
-    if (volCount > 0) {
-      avgMicVolume = volSum / volCount;
-    }
+        const timeData = new Uint8Array(analyserNode.fftSize);
 
-    // Compute volume variance / standard deviation to differentiate speech from flat noise
-    let meanVol = volCount > 0 ? (volSum / volCount) : 0;
-    let varianceSum = 0;
-    for (let i = 0; i < vocalEnergySamples.length; i++) {
-      const diff = vocalEnergySamples[i] - meanVol;
-      varianceSum += diff * diff;
-    }
-    const volStdDev = vocalEnergySamples.length > 0 ? Math.sqrt(varianceSum / vocalEnergySamples.length) : 0;
+        vuInterval = setInterval(() => {
+          if (this.isAssessmentCancelled) return;
+          analyserNode.getByteTimeDomainData(timeData);
 
-    // Distinguish genuine human speech from background noise/fan:
-    const hasRecognizedWords = Boolean(recognizedTranscript && recognizedTranscript.trim().length >= 3);
-    const hasAcousticSpeech = Boolean(vocalBurstCount >= 3 && volStdDev > 0.010 && maxMicVolume > 0.030);
-    const hasRealSpeech = hasRecognizedWords || hasAcousticSpeech;
+          let sumSq = 0;
+          for (let i = 0; i < timeData.length; i++) {
+            const val = (timeData[i] - 128) / 128.0;
+            sumSq += val * val;
+          }
+          const rms = Math.sqrt(sumSq / timeData.length);
+          const gatedRms = Math.max(0, rms - 0.015);
+          const floatVol = gatedRms;
+          vocalEnergySamples.push(floatVol);
 
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      await new Promise(resolve => {
-        mediaRecorder.onstop = () => {
-          recordedAudioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
-          resolve();
+          if (floatVol > maxMicVolume) maxMicVolume = floatVol;
+          volSum += floatVol;
+          volCount++;
+
+          if (floatVol > 0.035 && !inBurst) {
+            inBurst = true;
+            vocalBurstCount++;
+          } else if (floatVol < 0.018 && inBurst) {
+            inBurst = false;
+          }
+
+          if (this.lastFaceDetected) faceSeenDuringTest = true;
+
+          const norm = Math.min(100, Math.round((gatedRms / 0.22) * 100));
+          if (vuBar) {
+            vuBar.style.width = `${norm}%`;
+            vuBar.style.background = norm > 5 ? "#10B981" : "#64748B";
+          }
+          if (vuText) {
+            vuText.textContent = `${norm}%`;
+            vuText.style.color = norm > 5 ? "#34D399" : "#94A3B8";
+          }
+        }, 50);
+
+        // Setup MediaRecorder for genuine playback
+        let mimeType = "audio/webm";
+        if (typeof MediaRecorder.isTypeSupported === "function") {
+          if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+            mimeType = "audio/webm;codecs=opus";
+          } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
+            mimeType = "audio/ogg;codecs=opus";
+          }
+        }
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType: mimeType });
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) audioChunks.push(e.data);
         };
-        mediaRecorder.stop();
-      });
-    }
+        mediaRecorder.start(250);
+      } catch (err) {
+        console.warn("[ASSESSMENT] Không thể truy cập Microphone:", err);
+      }
 
-    let step2WavBlob = null;
-    if (step2Processor) {
-      step2Processor.disconnect();
-    }
-    if (step2PcmSamples.length > 0 && audioCtx) {
-      step2WavBlob = this.encodeWAV(step2PcmSamples, audioCtx.sampleRate || 16000);
-    }
+      try {
+        if (window.acousticEngine) window.acousticEngine.play432HzChime();
+      } catch (e) { }
 
-    if (audioStream) {
-      audioStream.getTracks().forEach(t => t.stop());
-    }
-    if (audioCtx && audioCtx.state !== "closed") {
-      audioCtx.close();
-    }
+      await this.runStepTimer(7, progressBar, timerLabel);
 
-    // -----------------------------------------------------------
-    // BƯỚC 3: Phản Xạ Nụ Cười - 3 giây
-    // -----------------------------------------------------------
-    if (badge) badge.textContent = "BƯỚC 3/3: PHẢN XẠ NỤ CƯỜI - 3 GIÂY";
-    if (instruction) instruction.textContent = "Hãy mỉm cười tự nhiên trong 3 giây để kiểm tra phản xạ co cơ gò má lớn...";
-    if (promptBox) promptBox.style.display = "none";
-    await this.runStepTimer(3, progressBar, timerLabel);
+      if (speechRecognizer) {
+        try { speechRecognizer.stop(); } catch (e) { }
+      }
 
-    clearInterval(frameSampler);
+      if (this.isAssessmentCancelled) return;
 
-    if (this.isAssessmentCancelled) return;
+      // Stop VU meter and clean display
+      if (vuInterval) {
+        clearInterval(vuInterval);
+        vuInterval = null;
+      }
+      if (vuBar) vuBar.style.width = "0%";
+      if (vuText) vuText.textContent = "0%";
 
-    if (bestSmileFrame) {
-      capturedFaceB64 = bestSmileFrame;
-      faceSeenDuringTest = true;
-    } else if (bestFaceFrame) {
-      capturedFaceB64 = bestFaceFrame;
-      faceSeenDuringTest = true;
-    } else {
-      const finalF = this.captureWebcamFrame();
-      if (finalF) capturedFaceB64 = finalF;
-      faceSeenDuringTest = Boolean(this.lastFaceDetected);
-    }
+      if (volCount > 0) {
+        avgMicVolume = volSum / volCount;
+      }
 
-    // Hoàn tất: Ẩn overlay
-    if (overlay) overlay.style.display = "none";
-    this.isAssessing = false;
+      let meanVol = volCount > 0 ? (volSum / volCount) : 0;
+      let varianceSum = 0;
+      for (let i = 0; i < vocalEnergySamples.length; i++) {
+        const diff = vocalEnergySamples[i] - meanVol;
+        varianceSum += diff * diff;
+      }
+      const volStdDev = vocalEnergySamples.length > 0 ? Math.sqrt(varianceSum / vocalEnergySamples.length) : 0;
 
-    // STRICT CHECK BEFORE CALLING EVALUATION:
-    if (!faceSeenDuringTest || !bestFaceFrame) {
-      this.showWebModal(
-        "[HỦY ĐÁNH GIÁ - THIẾU DỮ LIỆU KHUÔN MẶT]",
-        "Bài kiểm tra đã bị hủy vì không ghi nhận được khuôn mặt hợp lệ.\n\nVui lòng đảm bảo không che mặt và bấm 'BẮT ĐẦU ĐÁNH GIÁ 3 BƯỚC' lại.",
-        "danger"
-      );
-      return;
-    }
+      const hasRecognizedWords = Boolean(recognizedTranscript && recognizedTranscript.trim().length >= 3);
+      const hasAcousticSpeech = Boolean(vocalBurstCount >= 3 && volStdDev > 0.010 && maxMicVolume > 0.030);
+      const hasRealSpeech = hasRecognizedWords || hasAcousticSpeech;
 
-    // Gửi dữ liệu thực tế lên backend để đánh giá lâm sàng
-    try {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        try {
+          await Promise.race([
+            new Promise(resolve => {
+              mediaRecorder.onstop = () => {
+                try {
+                  recordedAudioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+                } catch (e) { }
+                resolve();
+              };
+              try { mediaRecorder.stop(); } catch (e) { resolve(); }
+            }),
+            new Promise(resolve => setTimeout(resolve, 500))
+          ]);
+        } catch (e) { }
+      }
+
+      let step2WavBlob = null;
+      if (step2Processor) {
+        try { step2Processor.disconnect(); } catch (e) { }
+        step2Processor = null;
+      }
+      if (step2PcmSamples && step2PcmSamples.length > 0 && audioCtx) {
+        try {
+          step2WavBlob = this.encodeWAV(step2PcmSamples, audioCtx.sampleRate || 16000);
+        } catch (e) { }
+      }
+
+      if (audioStream) {
+        try { audioStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+        audioStream = null;
+      }
+      if (audioCtx && audioCtx.state !== "closed") {
+        try { await audioCtx.close(); } catch (e) { }
+        audioCtx = null;
+      }
+
+      // -----------------------------------------------------------
+      // BƯỚC 3: Phản Xạ Nụ Cười - 3 giây
+      // -----------------------------------------------------------
+      if (badge) badge.textContent = "Bước 3/3: Phản xạ nụ cười - 3 giây";
+      if (instruction) instruction.textContent = "Hãy mỉm cười tự nhiên trong 3 giây để kiểm tra phản xạ co cơ gò má lớn...";
+      if (promptBox) promptBox.style.display = "none";
+      if (progressBar) progressBar.style.width = "100%";
+      if (timerLabel) timerLabel.textContent = "Còn 3 giây...";
+
+      await this.runStepTimer(3, progressBar, timerLabel);
+
+      if (frameSampler) {
+        clearInterval(frameSampler);
+        frameSampler = null;
+      }
+
+      if (this.isAssessmentCancelled) return;
+
+      if (bestSmileFrame) {
+        capturedFaceB64 = bestSmileFrame;
+        faceSeenDuringTest = true;
+      } else if (bestFaceFrame) {
+        capturedFaceB64 = bestFaceFrame;
+        faceSeenDuringTest = true;
+      } else {
+        const finalF = this.captureWebcamFrame();
+        if (finalF) capturedFaceB64 = finalF;
+        faceSeenDuringTest = Boolean(this.lastFaceDetected);
+      }
+
+      if (!capturedFaceB64 && !bestFaceFrame) {
+        if (overlay) overlay.style.display = "none";
+        this.showWebModal(
+          "Chưa ghi nhận đủ dữ liệu khuôn mặt",
+          "Bài kiểm tra kết thúc nhưng camera chưa bắt được hình ảnh khuôn mặt rõ nét.\n\nVui lòng đảm bảo ngồi trước camera và thử lại.",
+          "warning"
+        );
+        return;
+      }
+
+      // Giữ overlay hiển thị tiến trình tổng hợp kết quả (không để màn hình bị đơ)
+      if (badge) {
+        badge.textContent = "Đang tổng hợp dữ liệu lâm sàng";
+        badge.style.background = "rgba(14, 165, 233, 0.18)";
+        badge.style.color = "var(--accent-primary)";
+      }
+      if (instruction) {
+        instruction.textContent = "Hệ thống AI đang phân tích đồng pha nét mặt, tư thế và âm phổ giọng nói...";
+      }
+      if (stepTimerLabel) {
+        stepTimerLabel.textContent = "Đang trích xuất đặc trưng sinh trắc học...";
+      }
+      if (stepTimerBar) {
+        stepTimerBar.style.width = "100%";
+        stepTimerBar.style.transition = "width 0.3s ease";
+      }
+
+      // Gửi dữ liệu đồng thời (Parallel Promise.all) để tối ưu thời gian phản hồi
       const promptId = (this.currentPrompt && (this.currentPrompt.id || this.currentPrompt.prompt_id)) || "PROMPT_01";
       const promptTxt = (this.currentPrompt && this.currentPrompt.prompt_text) || "Tôi cảm thấy hoàn toàn bình an và làm chủ được năng lượng tinh thần hôm nay.";
 
-      const resp = await fetch("/api/vocal_assessment/evaluate", {
+      const evaluatePromise = fetch("/api/vocal_assessment/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2055,6 +2105,22 @@ class ClinicalStationApp {
         })
       });
 
+      const audioToAnalyze = step2WavBlob || recordedAudioBlob;
+      let uploadPromise = null;
+      if (audioToAnalyze && (hasRealSpeech || maxMicVolume > 0.015)) {
+        const vfd = new FormData();
+        vfd.append("file", audioToAnalyze, "step2_speech.wav");
+        uploadPromise = fetch("/api/vocal_assessment/upload", {
+          method: "POST",
+          body: vfd
+        }).catch(vErr => {
+          console.warn("[ASSESSMENT] Step 2 vocal upload note:", vErr);
+          return null;
+        });
+      }
+
+      const [resp, vres] = await Promise.all([evaluatePromise, uploadPromise]);
+
       if (!resp.ok) {
         const errText = await resp.text();
         throw new Error(`Server returned ${resp.status}: ${errText}`);
@@ -2062,67 +2128,94 @@ class ClinicalStationApp {
 
       const evalData = await resp.json();
 
-      // Upload speech audio to vocal engine
-      const audioToAnalyze = step2WavBlob || recordedAudioBlob;
-      if (audioToAnalyze && (hasRealSpeech || maxMicVolume > 0.015)) {
+      if (vres && vres.ok) {
         try {
-          const vfd = new FormData();
-          vfd.append("file", audioToAnalyze, "step2_speech.wav");
-          const vres = await fetch("/api/vocal_assessment/upload", {
-            method: "POST",
-            body: vfd
-          });
-          if (vres.ok) {
-            const vData = await vres.json();
-            if (vData && vData.status === "success") {
-              evalData.vocal_emotion = vData.emotion;
-              evalData.vocal_confidence = vData.confidence;
-              evalData.vocal_energy = vData.energy_level;
+          const vData = await vres.json();
+          if (vData && vData.status === "success") {
+            evalData.vocal_emotion = vData.emotion;
+            evalData.vocal_confidence = vData.confidence;
+            evalData.vocal_energy = vData.energy_level;
 
-              // Update real-time vocal telemetry UI
-              const speechStatus = document.getElementById("speech-status-text");
-              const speechBar = document.getElementById("speech-pct-bar");
-              const emotionMetric = document.getElementById("metric-emotion-class");
-              const confMetric = document.getElementById("metric-confidence");
-              if (speechStatus) {
-                speechStatus.textContent = `${vData.emotion.toUpperCase()} (${vData.confidence}%) • NL: ${vData.energy_level}`;
-              }
-              if (speechBar) {
-                speechBar.style.width = `${Math.min(100, Math.max(15, vData.confidence))}%`;
-              }
-              if (emotionMetric) {
-                emotionMetric.textContent = `VOCAL: ${vData.emotion.toUpperCase()}`;
-              }
-              if (confMetric) {
-                confMetric.textContent = `${vData.confidence}%`;
-              }
+            // Update real-time vocal telemetry UI
+            const speechStatus = document.getElementById("speech-status-text");
+            const speechBar = document.getElementById("speech-pct-bar");
+            const emotionMetric = document.getElementById("metric-emotion-class");
+            const confMetric = document.getElementById("metric-confidence");
+            if (speechStatus) {
+              speechStatus.textContent = `${vData.emotion.toUpperCase()} - Độ tin cậy ${vData.confidence}% - Năng lượng ${vData.energy_level}`;
+            }
+            if (speechBar) {
+              speechBar.style.width = `${Math.min(100, Math.max(15, vData.confidence))}%`;
+            }
+            if (emotionMetric) {
+              emotionMetric.textContent = `VOCAL: ${vData.emotion.toUpperCase()}`;
+            }
+            if (confMetric) {
+              confMetric.textContent = `${vData.confidence}%`;
             }
           }
         } catch (vErr) {
-          console.warn("[ASSESSMENT] Step 2 vocal analysis note:", vErr);
+          console.warn("[ASSESSMENT] Step 2 vocal parse note:", vErr);
         }
       }
 
+      if (overlay) overlay.style.display = "none";
       this.showAssessmentScorecard(evalData, capturedFaceB64, recordedAudioBlob, avgMicVolume, maxMicVolume);
     } catch (e) {
-      console.error("[ASSESSMENT] Lỗi đánh giá backend:", e);
+      console.error("[ASSESSMENT] Lỗi đánh giá lâm sàng:", e);
+      if (overlay) overlay.style.display = "none";
+      const isNetworkErr = e.name === "TypeError" || String(e).includes("Failed to fetch");
+      const msg = isNetworkErr
+        ? "Máy chủ backend chưa được bật hoặc đang bị dừng. Vui lòng chạy lệnh 'python app.py' trong terminal và thử lại."
+        : (e.message || "Không thể kết nối máy chủ để đánh giá dữ liệu sinh trắc học. Vui lòng thử lại.");
       this.showWebModal(
-        "[LỖI KẾT NỐI MÁY CHỦ]",
-        "Không thể kết nối máy chủ để đánh giá dữ liệu sinh trắc học. Vui lòng thử lại.",
+        "Lỗi kết nối máy chủ",
+        msg,
         "danger"
       );
+    } finally {
+      this.isAssessing = false;
+      if (frameSampler) {
+        clearInterval(frameSampler);
+        frameSampler = null;
+      }
+      if (vuInterval) {
+        clearInterval(vuInterval);
+        vuInterval = null;
+      }
+      if (speechRecognizer) {
+        try { speechRecognizer.stop(); } catch (e) { }
+      }
+      if (step2Processor) {
+        try { step2Processor.disconnect(); } catch (e) { }
+      }
+      if (audioStream) {
+        try { audioStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+      }
+      if (audioCtx && audioCtx.state !== "closed") {
+        try { audioCtx.close(); } catch (e) { }
+      }
     }
   }
 
   runStepTimer(durationSec, barEl, labelEl) {
     return new Promise(resolve => {
+      let isResolved = false;
       const totalMs = durationSec * 1000;
       const startTime = Date.now();
 
+      const done = () => {
+        if (isResolved) return;
+        isResolved = true;
+        clearInterval(interval);
+        clearTimeout(fallbackTimer);
+        if (barEl) barEl.style.width = "0%";
+        resolve();
+      };
+
       const interval = setInterval(() => {
         if (this.isAssessmentCancelled) {
-          clearInterval(interval);
-          resolve();
+          done();
           return;
         }
         const elapsed = Date.now() - startTime;
@@ -2133,11 +2226,11 @@ class ClinicalStationApp {
         if (labelEl) labelEl.textContent = `Còn ${remSec} giây...`;
 
         if (elapsed >= totalMs) {
-          clearInterval(interval);
-          if (barEl) barEl.style.width = "0%";
-          resolve();
+          done();
         }
       }, 50);
+
+      const fallbackTimer = setTimeout(done, totalMs + 400);
     });
   }
 
@@ -2145,8 +2238,8 @@ class ClinicalStationApp {
     // If not a valid assessment or no face detected, show warning web popup
     if (!res || res.valid_assessment === false || !res.face_detected) {
       this.showWebModal(
-        res && res.status_label ? res.status_label : "[KẾT QUẢ ĐÁNH GIÁ CHƯA HỢP LỆ]",
-        res && res.prescription ? res.prescription : "Hệ thống không ghi nhận đủ dữ liệu khuôn mặt và giọng đọc hợp lệ. Vui lòng bấm 'BẮT ĐẦU ĐÁNH GIÁ 3 BƯỚC' để thực hiện lại.",
+        res && res.status_label ? res.status_label : "Kết quả đánh giá chưa hợp lệ",
+        res && res.prescription ? res.prescription : "Hệ thống không ghi nhận đủ dữ liệu khuôn mặt và giọng đọc hợp lệ. Vui lòng bấm Bắt đầu đánh giá 3 bước để thực hiện lại.",
         "warning"
       );
       return;
@@ -2180,7 +2273,7 @@ class ClinicalStationApp {
     if (scoreNum) scoreNum.textContent = finalScore;
 
     if (scoreStatus) {
-      scoreStatus.textContent = res.status_label || "ĐÁNH GIÁ HOÀN TẤT";
+      scoreStatus.textContent = res.status_label || "Đánh giá hoàn tất";
       if (finalScore >= 80) {
         scoreStatus.style.color = "#059669";
       } else if (finalScore >= 60) {
@@ -2194,7 +2287,7 @@ class ClinicalStationApp {
     if (faceRes) faceRes.textContent = res.face_detail || "Chưa có dữ liệu";
     if (voiceRes) {
       if (res.vocal_emotion) {
-        voiceRes.textContent = `[CẢM XÚC: ${res.vocal_emotion.toUpperCase()} • ${res.vocal_confidence}%] ${res.voice_detail || ""}`;
+        voiceRes.textContent = `Cảm xúc: ${res.vocal_emotion.toUpperCase()} - Độ tin cậy ${res.vocal_confidence}%. ${res.voice_detail || ""}`;
       } else {
         voiceRes.textContent = res.voice_detail || "Chưa có dữ liệu";
       }
@@ -2243,7 +2336,7 @@ class ClinicalStationApp {
     const hasVoice = Boolean(res.has_speech || res.has_audio);
     if (audioBadge) {
       if (hasVoice) {
-        const emoSuffix = res.vocal_emotion ? ` • ${res.vocal_emotion} (${res.vocal_confidence}%)` : "";
+        const emoSuffix = res.vocal_emotion ? ` - ${res.vocal_emotion} ${res.vocal_confidence}%` : "";
         audioBadge.textContent = `Âm lượng: ${Math.round((avgVol || 0) * 100)}%${emoSuffix}`;
         audioBadge.className = "badge badge-success";
       } else {
@@ -2261,7 +2354,7 @@ class ClinicalStationApp {
         evidenceBadge.textContent = "Đã thu thập đủ 2 kênh sinh trắc";
         evidenceBadge.className = "badge badge-success";
       } else if (!res.face_detected && !hasVoice) {
-        evidenceBadge.textContent = "Không hợp lệ: Thiếu cả mặt & giọng nói";
+        evidenceBadge.textContent = "Không hợp lệ: Thiếu cả mặt và giọng nói";
         evidenceBadge.className = "badge badge-danger";
       } else if (!res.face_detected) {
         evidenceBadge.textContent = "Thiếu tín hiệu khuôn mặt";
@@ -3051,10 +3144,13 @@ class GuidedAssessmentSession {
         console.warn("[SESSION AUDIO] MediaRecorder notice:", mrErr);
       }
 
-      // 2. Web Audio API AnalyserNode for live VU meter & lossless PCM capture
+      // 2. Web Audio AnalyserNode for live VU meter & lossless PCM capture
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
         this.audioCtx = new AudioCtx();
+        if (this.audioCtx.state === "suspended") {
+          try { await this.audioCtx.resume(); } catch (e) { }
+        }
         const source = this.audioCtx.createMediaStreamSource(this.audioStream);
         this.analyser = this.audioCtx.createAnalyser();
         this.analyser.fftSize = 256;
@@ -3110,13 +3206,16 @@ class GuidedAssessmentSession {
       vuStatus.className = "badge badge-success";
     }
 
-    // Stop MediaRecorder
+    // Stop MediaRecorder with safety race timeout to prevent deadlock hangs
     if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
       try {
-        await new Promise(resolve => {
-          this.mediaRecorder.onstop = resolve;
-          this.mediaRecorder.stop();
-        });
+        await Promise.race([
+          new Promise(resolve => {
+            this.mediaRecorder.onstop = resolve;
+            this.mediaRecorder.stop();
+          }),
+          new Promise(resolve => setTimeout(resolve, 500))
+        ]);
       } catch (e) { }
     }
 
@@ -3210,217 +3309,220 @@ class GuidedAssessmentSession {
     this.hasSessionResult = true;
 
     const statusBadge = document.getElementById("session-status-badge");
+    const countdownWrapper = document.getElementById("session-countdown-wrapper");
+    const startBtn = document.getElementById("btn-start-session-15s");
+    const startBtnLbl = document.getElementById("btn-start-session-label");
+    const retestRow = document.getElementById("session-retest-row");
+
     if (statusBadge) {
       statusBadge.textContent = "Đang tổng hợp kết quả...";
       statusBadge.className = "badge badge-clinical";
     }
 
-    // 1. Stop audio and retrieve audio blob
-    const audioBlob = await this.stopAudioRecording();
+    try {
+      // 1. Stop audio and retrieve audio blob
+      const audioBlob = await this.stopAudioRecording();
 
-    // 2. Upload audio to /api/vocal_assessment
-    let vocalData = {
-      status: "success",
-      emotion: "calm",
-      confidence: 86.0,
-      energy_level: 0.042,
-      duration_sec: 15.0,
-      pitch_hz: 175.0,
-      insight: "Ngữ điệu tự nhiên, cao độ ổn định."
-    };
+      // 2. Upload audio to /api/vocal_assessment
+      let vocalData = {
+        status: "success",
+        emotion: "calm",
+        confidence: 86.0,
+        energy_level: 0.042,
+        duration_sec: 15.0,
+        pitch_hz: 175.0,
+        insight: "Ngữ điệu tự nhiên, cao độ ổn định."
+      };
 
-    if (audioBlob) {
-      try {
-        const formData = new FormData();
-        const ext = audioBlob.type && audioBlob.type.includes("wav") ? "wav" : "webm";
-        formData.append("file", audioBlob, `session_15s.${ext}`);
+      if (audioBlob) {
+        try {
+          const formData = new FormData();
+          const ext = audioBlob.type && audioBlob.type.includes("wav") ? "wav" : "webm";
+          formData.append("file", audioBlob, `session_15s.${ext}`);
 
-        let res = await fetch("/api/vocal_assessment", {
-          method: "POST",
-          body: formData
-        });
-
-        if (res.status === 404) {
-          res = await fetch("/api/vocal_assessment/upload", {
+          let res = await fetch("/api/vocal_assessment", {
             method: "POST",
             body: formData
           });
-        }
 
-        if (res.ok) {
-          vocalData = await res.json();
+          if (res.status === 404) {
+            res = await fetch("/api/vocal_assessment/upload", {
+              method: "POST",
+              body: formData
+            });
+          }
+
+          if (res.ok) {
+            vocalData = await res.json();
+          }
+        } catch (err) {
+          console.warn("[SESSION] Vocal assessment error:", err);
         }
-      } catch (err) {
-        console.warn("[SESSION] Vocal API error:", err);
       }
-    }
 
-    // 3. Compute telemetry aggregate stats over 15s window
-    let blinksIn15s = this.blinkTransitions;
-    if (this.startBlinkCount !== null && this.currentBlinkCount !== null) {
-      const diff = Math.max(0, this.currentBlinkCount - this.startBlinkCount);
-      if (diff > blinksIn15s) blinksIn15s = diff;
-    }
-    const normalizedBpm = Math.round(blinksIn15s * 4);
+      // 3. Compute telemetry aggregate stats over 15s window
+      let blinksIn15s = this.blinkTransitions;
+      if (this.startBlinkCount !== null && this.currentBlinkCount !== null) {
+        const diff = Math.max(0, this.currentBlinkCount - this.startBlinkCount);
+        if (diff > blinksIn15s) blinksIn15s = diff;
+      }
+      const normalizedBpm = Math.round(blinksIn15s * 4);
 
-    let blinkState = "Bình thường";
-    let blinkBadgeClass = "badge-success";
-    if (normalizedBpm < 10) {
-      blinkState = "Ít chớp";
-      blinkBadgeClass = "badge-warning";
-    } else if (normalizedBpm > 24) {
-      blinkState = "Nháy liên tục";
-      blinkBadgeClass = "badge-danger";
-    }
+      let blinkState = "Bình thường";
+      let blinkBadgeClass = "badge-success";
+      if (normalizedBpm < 10) {
+        blinkState = "Ít chớp";
+        blinkBadgeClass = "badge-warning";
+      } else if (normalizedBpm > 24) {
+        blinkState = "Nháy liên tục";
+        blinkBadgeClass = "badge-danger";
+      }
 
-    const avgFidget = this.sampledFidget.length > 0
-      ? (this.sampledFidget.reduce((a, b) => a + b, 0) / this.sampledFidget.length)
-      : 8.5;
-    const avgVar = this.sampledVariance.length > 0
-      ? (this.sampledVariance.reduce((a, b) => a + b, 0) / this.sampledVariance.length)
-      : 2.1;
+      const avgFidget = this.sampledFidget.length > 0
+        ? (this.sampledFidget.reduce((a, b) => a + b, 0) / this.sampledFidget.length)
+        : 8.5;
+      const avgVar = this.sampledVariance.length > 0
+        ? (this.sampledVariance.reduce((a, b) => a + b, 0) / this.sampledVariance.length)
+        : 2.1;
 
-    let headState = "Ổn định";
-    let headMetricText = "Vững trục cổ";
-    let headBadgeClass = "badge-success";
-    if (avgFidget > 35) {
-      headState = "Bồn chồn";
-      headMetricText = "Bồn chồn cao";
-      headBadgeClass = "badge-danger";
-    } else if (avgFidget >= 18) {
-      headState = "Rung lắc nhẹ";
-      headMetricText = "Dao động nhẹ";
-      headBadgeClass = "badge-warning";
-    }
+      let headState = "Ổn định";
+      let headMetricText = "Vững trục cổ";
+      let headBadgeClass = "badge-success";
+      if (avgFidget > 35) {
+        headState = "Bồn chồn";
+        headMetricText = "Bồn chồn cao";
+        headBadgeClass = "badge-danger";
+      } else if (avgFidget >= 18) {
+        headState = "Rung lắc nhẹ";
+        headMetricText = "Dao động nhẹ";
+        headBadgeClass = "badge-warning";
+      }
 
-    // Vocal emotion mapping from assessment response
-    const rawEmo = (vocalData.emotion || "calm").toLowerCase();
-    const vocalConf = Number(vocalData.confidence || 85.0).toFixed(1);
-    let vocalLabel = "Bình tĩnh";
-    let vocalBadgeClass = "badge-success";
+      // Vocal emotion mapping from assessment response
+      const rawEmo = (vocalData.emotion || "calm").toLowerCase();
+      const vocalConf = Number(vocalData.confidence || 85.0).toFixed(1);
+      let vocalLabel = "Bình tĩnh";
+      let vocalBadgeClass = "badge-success";
 
-    if (rawEmo === "happy") {
-      vocalLabel = "Tự tin";
-      vocalBadgeClass = "badge-success";
-    } else if (rawEmo === "calm" || rawEmo === "neutral") {
-      vocalLabel = "Bình tĩnh";
-      vocalBadgeClass = "badge-success";
-    } else {
-      vocalLabel = "Căng thẳng";
-      vocalBadgeClass = "badge-danger";
-    }
+      if (rawEmo === "happy") {
+        vocalLabel = "Tự tin";
+        vocalBadgeClass = "badge-success";
+      } else if (rawEmo === "calm" || rawEmo === "neutral") {
+        vocalLabel = "Bình tĩnh";
+        vocalBadgeClass = "badge-success";
+      } else {
+        vocalLabel = "Căng thẳng";
+        vocalBadgeClass = "badge-danger";
+      }
 
-    // 4. Overall Diagnostic Verdict calculation (Stable / Restless)
-    let verdictTitle = "Trạng thái: Ổn định và tỉnh táo";
-    let verdictDesc = "Tần suất chớp mắt, tư thế đầu và năng lượng giọng nói đều đạt trạng thái điều hòa tự nhiên.";
-    let verdictClass = "verdict-stable";
-    let verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+      // 4. Overall Diagnostic Verdict calculation (Stable / Restless)
+      let verdictTitle = "Trạng thái: Ổn định và tỉnh táo";
+      let verdictDesc = "Tần suất chớp mắt, tư thế đầu và năng lượng giọng nói đều đạt trạng thái điều hòa tự nhiên.";
+      let verdictClass = "verdict-stable";
+      let verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
 
-    const isNonIdeal = (headState === "Bồn chồn" || vocalLabel === "Căng thẳng" || blinkState === "Nháy liên tục");
-    const isModerate = (headState === "Rung lắc nhẹ" || blinkState === "Ít chớp");
+      const isNonIdeal = (headState === "Bồn chồn" || vocalLabel === "Căng thẳng" || blinkState === "Nháy liên tục");
+      const isModerate = (headState === "Rung lắc nhẹ" || blinkState === "Ít chớp");
 
-    if (this.framesTotal > 0 && (this.framesFaceDetected / this.framesTotal) < 0.25) {
-      verdictTitle = "Cảnh báo: Không phát hiện khuôn mặt";
-      verdictDesc = "AI không nhận diện được khuôn mặt đầy đủ trong 15s vừa qua. Vui lòng ngồi thẳng, hướng mặt vào giữa khung camera và bấm kiểm tra lại.";
-      verdictClass = "verdict-danger";
-      verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-      headState = "Mất dấu mặt";
-      headMetricText = "Chưa phát hiện";
-      headBadgeClass = "badge-danger";
-      blinkState = "Chưa đo được";
-      blinkBadgeClass = "badge-danger";
-    } else if (isNonIdeal) {
-      verdictTitle = "Trạng thái: Bồn chồn hoặc căng thẳng";
-      verdictDesc = "Hệ thống ghi nhận dấu hiệu bồn chồn ở cử động đầu hoặc sự căng thẳng trong âm sắc giọng nói. Nên thả lỏng cơ mặt và thở sâu.";
-      verdictClass = "verdict-danger";
-      verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-    } else if (isModerate) {
-      verdictTitle = "Trạng thái: Dao động nhẹ, cần nghỉ ngơi";
-      verdictDesc = "Phát hiện dao động nhẹ ở tư thế đầu hoặc nhịp chớp mắt. Vui lòng thả lỏng cơ vai và hít thở điều hòa.";
-      verdictClass = "verdict-warning";
-      verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
-    }
+      if (this.framesTotal > 0 && (this.framesFaceDetected / this.framesTotal) < 0.25) {
+        verdictTitle = "Cảnh báo: Không phát hiện khuôn mặt";
+        verdictDesc = "Hệ thống không nhận diện được khuôn mặt đầy đủ trong 15s vừa qua. Vui lòng ngồi thẳng, hướng mặt vào giữa khung camera và bấm kiểm tra lại.";
+        verdictClass = "verdict-danger";
+        verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+        headState = "Mất dấu mặt";
+        headMetricText = "Chưa phát hiện";
+        headBadgeClass = "badge-danger";
+        blinkState = "Chưa đo được";
+        blinkBadgeClass = "badge-danger";
+      } else if (isNonIdeal) {
+        verdictTitle = "Trạng thái: Bồn chồn hoặc căng thẳng";
+        verdictDesc = "Hệ thống ghi nhận dấu hiệu bồn chồn ở cử động đầu hoặc sự căng thẳng trong âm sắc giọng nói. Nên thả lỏng cơ mặt và thở sâu.";
+        verdictClass = "verdict-danger";
+        verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+      } else if (isModerate) {
+        verdictTitle = "Trạng thái: Dao động nhẹ, cần nghỉ ngơi";
+        verdictDesc = "Phát hiện dao động nhẹ ở tư thế đầu hoặc nhịp chớp mắt. Vui lòng thả lỏng cơ vai và hít thở điều hòa.";
+        verdictClass = "verdict-warning";
+        verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+      }
 
-    // 5. Render Diagnostic Summary Card
-    const modeBadge = document.getElementById("session-mode-badge");
-    if (modeBadge) {
-      modeBadge.textContent = "BÁO CÁO PHIÊN 15S";
-      modeBadge.className = "badge badge-clinical";
-    }
+      // 5. Render Diagnostic Summary Card
+      const modeBadge = document.getElementById("session-mode-badge");
+      if (modeBadge) {
+        modeBadge.textContent = "BÁO CÁO PHIÊN 15S";
+        modeBadge.className = "badge badge-clinical";
+      }
 
-    const vBanner = document.getElementById("session-verdict-banner");
-    const vTitle = document.getElementById("session-verdict-title");
-    const vDesc = document.getElementById("session-verdict-desc");
-    const vIcon = document.getElementById("session-verdict-icon");
+      const vBanner = document.getElementById("session-verdict-banner");
+      const vTitle = document.getElementById("session-verdict-title");
+      const vDesc = document.getElementById("session-verdict-desc");
+      const vIcon = document.getElementById("session-verdict-icon");
 
-    if (vBanner) {
-      vBanner.className = `session-verdict-banner ${verdictClass}`;
-    }
-    if (vTitle) vTitle.textContent = verdictTitle;
-    if (vDesc) vDesc.textContent = verdictDesc;
-    if (vIcon) vIcon.innerHTML = verdictIcon;
+      if (vBanner) {
+        vBanner.className = `session-verdict-banner ${verdictClass}`;
+      }
+      if (vTitle) vTitle.textContent = verdictTitle;
+      if (vDesc) vDesc.textContent = verdictDesc;
+      if (vIcon) vIcon.innerHTML = verdictIcon;
 
-    // Badges update
-    const bMetric = document.getElementById("session-res-blink-metric");
-    const bBadge = document.getElementById("session-res-blink-badge");
-    if (bMetric) bMetric.textContent = `${normalizedBpm} Lần/phút`;
-    if (bBadge) {
-      bBadge.textContent = blinkState;
-      bBadge.className = `session-badge-state badge ${blinkBadgeClass}`;
-    }
+      // Badges update
+      const bMetric = document.getElementById("session-res-blink-metric");
+      const bBadge = document.getElementById("session-res-blink-badge");
+      if (bMetric) bMetric.textContent = `${normalizedBpm} Lần/phút`;
+      if (bBadge) {
+        bBadge.textContent = blinkState;
+        bBadge.className = `session-badge-state badge ${blinkBadgeClass}`;
+      }
 
-    const hMetric = document.getElementById("session-res-head-metric");
-    const hBadge = document.getElementById("session-res-head-badge");
-    if (hMetric) hMetric.textContent = headMetricText;
-    if (hBadge) {
-      hBadge.textContent = headState;
-      hBadge.className = `session-badge-state badge ${headBadgeClass}`;
-    }
+      const hMetric = document.getElementById("session-res-head-metric");
+      const hBadge = document.getElementById("session-res-head-badge");
+      if (hMetric) hMetric.textContent = headMetricText;
+      if (hBadge) {
+        hBadge.textContent = headState;
+        hBadge.className = `session-badge-state badge ${headBadgeClass}`;
+      }
 
-    const vocMetric = document.getElementById("session-res-voice-metric");
-    const vocBadge = document.getElementById("session-res-voice-badge");
-    if (vocMetric) vocMetric.textContent = `${vocalLabel} • ${vocalConf}%`;
-    if (vocBadge) {
-      vocBadge.textContent = vocalLabel;
-      vocBadge.className = `session-badge-state badge ${vocalBadgeClass}`;
-    }
+      const vocMetric = document.getElementById("session-res-voice-metric");
+      const vocBadge = document.getElementById("session-res-voice-badge");
+      if (vocMetric) vocMetric.textContent = `${vocalLabel} • ${vocalConf}%`;
+      if (vocBadge) {
+        vocBadge.textContent = vocalLabel;
+        vocBadge.className = `session-badge-state badge ${vocalBadgeClass}`;
+      }
 
-    // Technical Details Accordion
-    const techF0 = document.getElementById("session-tech-f0");
-    const techEnergy = document.getElementById("session-tech-energy");
-    const techDuration = document.getElementById("session-tech-duration");
-    const techConf = document.getElementById("session-tech-conf");
+      // Technical Details Accordion
+      const techF0 = document.getElementById("session-tech-f0");
+      const techEnergy = document.getElementById("session-tech-energy");
+      const techDuration = document.getElementById("session-tech-duration");
+      const techConf = document.getElementById("session-tech-conf");
 
-    if (techF0) techF0.textContent = `${Math.round(vocalData.pitch_hz || 170)} Hz`;
-    if (techEnergy) techEnergy.textContent = `${vocalData.energy_level !== undefined ? vocalData.energy_level : 0.04}`;
-    if (techDuration) techDuration.textContent = `${vocalData.duration_sec !== undefined ? vocalData.duration_sec : 15}s`;
-    if (techConf) techConf.textContent = `${vocalConf}%`;
+      if (techF0) techF0.textContent = `${Math.round(vocalData.pitch_hz || 170)} Hz`;
+      if (techEnergy) techEnergy.textContent = `${vocalData.energy_level !== undefined ? vocalData.energy_level : 0.04}`;
+      if (techDuration) techDuration.textContent = `${vocalData.duration_sec !== undefined ? vocalData.duration_sec : 15}s`;
+      if (techConf) techConf.textContent = `${vocalConf}%`;
 
-    // Also update existing live elements for full harmony
-    const blinkBpmEl = document.getElementById("metric-blink-bpm");
-    if (blinkBpmEl) blinkBpmEl.textContent = normalizedBpm;
-    const fidgetScoreEl = document.getElementById("metric-fidget-score");
-    if (fidgetScoreEl) fidgetScoreEl.textContent = avgFidget.toFixed(1);
-    const noseVarEl = document.getElementById("metric-nose-variance");
-    if (noseVarEl) noseVarEl.textContent = avgVar.toFixed(1);
+      // Also update existing live elements for full harmony
+      const blinkBpmEl = document.getElementById("metric-blink-bpm");
+      if (blinkBpmEl) blinkBpmEl.textContent = normalizedBpm;
+      const fidgetScoreEl = document.getElementById("metric-fidget-score");
+      if (fidgetScoreEl) fidgetScoreEl.textContent = avgFidget.toFixed(1);
+      const noseVarEl = document.getElementById("metric-nose-variance");
+      if (noseVarEl) noseVarEl.textContent = avgVar.toFixed(1);
 
-    // Retest row
-    const retestRow = document.getElementById("session-retest-row");
-    if (retestRow) retestRow.style.display = "flex";
-
-    // Switch UI view in Controller
-    const countdownWrapper = document.getElementById("session-countdown-wrapper");
-    const startBtn = document.getElementById("btn-start-session-15s");
-    const startBtnLbl = document.getElementById("btn-start-session-label");
-
-    if (countdownWrapper) countdownWrapper.style.display = "none";
-    if (statusBadge) {
-      statusBadge.textContent = "Đã hoàn tất";
-      statusBadge.className = "badge badge-success";
-    }
-    if (startBtn) {
-      startBtn.style.display = "flex";
-      if (startBtnLbl) startBtnLbl.textContent = "Bắt đầu kiểm tra lại";
+    } catch (sessionErr) {
+      console.error("[SESSION] Error during finishSession:", sessionErr);
+    } finally {
+      // Retest row & controller button reset (ALWAYS executed)
+      if (retestRow) retestRow.style.display = "flex";
+      if (countdownWrapper) countdownWrapper.style.display = "none";
+      if (statusBadge) {
+        statusBadge.textContent = "Đã hoàn tất";
+        statusBadge.className = "badge badge-success";
+      }
+      if (startBtn) {
+        startBtn.style.display = "flex";
+        if (startBtnLbl) startBtnLbl.textContent = "Bắt đầu kiểm tra lại";
+      }
     }
   }
 }

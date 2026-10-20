@@ -24,7 +24,7 @@ DIM_SPEECH = 768     # 16kHz audio spectral / acoustic feature projection
 DIM_TEXT = 768       # Semantic text embedding projection
 DIM_FUSED = 256      # Joint GMU embedding space
 
-BIOMETRIC_MATCH_THRESHOLD = 0.55
+BIOMETRIC_MATCH_THRESHOLD = 0.75
 
 # Image quality / adaptive enhancement
 BLUR_THRESHOLD = 80.0          # Laplacian variance < ngưỡng này => mờ

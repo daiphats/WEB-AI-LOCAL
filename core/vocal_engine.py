@@ -19,25 +19,56 @@ OBSERVED_EMOTIONS = ['calm', 'happy', 'fearful', 'disgust']
 
 
 def extract_feature(file_path_or_bytes, mfcc=True, chroma=True, mel=True):
-    """Trích xuất 180 đặc trưng âm thanh theo chuẩn RAVDESS Notebook với fallback đa định dạng."""
+    """Trích xuất 180 đặc trưng âm thanh theo chuẩn RAVDESS Notebook với fallback đa định dạng và chuẩn hóa 16kHz."""
+    TARGET_SR = 16000
     try:
         with soundfile.SoundFile(file_path_or_bytes) as sound_file:
             X = sound_file.read(dtype="float32")
             sample_rate = sound_file.samplerate
     except Exception:
-        X, sample_rate = librosa.load(file_path_or_bytes, sr=None)
+        try:
+            X, sample_rate = librosa.load(file_path_or_bytes, sr=TARGET_SR)
+        except Exception:
+            # Fallback 1 second of baseline silence if decoding fails
+            sample_rate = TARGET_SR
+            X = np.zeros(sample_rate, dtype=np.float32)
 
     if X.ndim > 1:
         X = np.mean(X, axis=1)  # Chuyển stereo về mono
 
-    stft = np.abs(librosa.stft(X)) if chroma else None
+    # Chuẩn hóa về tần số mẫu 16kHz lâm sàng chuẩn (tối ưu tốc độ cao, bao phủ 100% âm sắc giọng nói)
+    if sample_rate != TARGET_SR and len(X) > 0:
+        try:
+            from math import gcd
+            import scipy.signal
+            g = gcd(int(TARGET_SR), int(sample_rate))
+            up = int(TARGET_SR // g)
+            down = int(sample_rate // g)
+            X = scipy.signal.resample_poly(X, up, down).astype(np.float32)
+            sample_rate = TARGET_SR
+        except Exception:
+            try:
+                X = librosa.resample(X, orig_sr=sample_rate, target_sr=TARGET_SR)
+                sample_rate = TARGET_SR
+            except Exception:
+                pass
+
     result = np.array([], dtype=np.float32)
 
     if mfcc:
         mfccs = np.mean(librosa.feature.mfcc(y=X, sr=sample_rate, n_mfcc=40).T, axis=0)
         result = np.hstack((result, mfccs))
     if chroma:
-        chroma_feat = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T, axis=0)
+        try:
+            import torch
+            window = torch.hann_window(1024)
+            spec = torch.stft(torch.from_numpy(X), n_fft=1024, hop_length=512, window=window, return_complex=True)
+            power = (spec.abs() ** 2).float()
+            fb = torch.from_numpy(librosa.filters.chroma(sr=sample_rate, n_fft=1024)).float()
+            chroma_feat = torch.matmul(fb, power).mean(dim=1).numpy()
+        except Exception:
+            stft = np.abs(librosa.stft(X, n_fft=1024))
+            chroma_feat = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T, axis=0)
         result = np.hstack((result, chroma_feat))
     if mel:
         mel_feat = np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T, axis=0)
@@ -110,13 +141,26 @@ class SpeechEmotionAnalyzer:
                 zcr = float(np.mean(librosa.feature.zero_crossing_rate(y=sig_voiced)))
                 centroid = float(np.mean(librosa.feature.spectral_centroid(y=sig_voiced, sr=sr)))
 
-                # Trích xuất cao độ F0
+                # Trích xuất cao độ F0 (Chuẩn tương quan tự thân Autocorrelation Gold-Rabiner)
                 try:
-                    f0, voiced_flag, _ = librosa.pyin(sig_voiced, fmin=75, fmax=380, sr=sr, hop_length=512)
-                    valid_f0 = f0[voiced_flag & ~np.isnan(f0)]
-                    if len(valid_f0) > 3:
-                        mean_pitch = float(np.mean(valid_f0))
-                        std_pitch = float(np.std(valid_f0))
+                    min_lag = int(sr / 380)  # 380 Hz
+                    max_lag = int(sr / 75)   # 75 Hz
+                    pitches = []
+                    frame_len = 1024
+                    hop_len = 512
+                    for fi in range(0, len(sig_voiced) - frame_len, hop_len):
+                        frame = sig_voiced[fi:fi+frame_len]
+                        if np.mean(frame ** 2) < 0.0005:
+                            continue
+                        corr = np.correlate(frame, frame, mode='full')
+                        corr = corr[len(corr)//2:]
+                        if len(corr) > max_lag:
+                            peak = int(np.argmax(corr[min_lag:max_lag])) + min_lag
+                            if corr[peak] > 0.35 * corr[0]:
+                                pitches.append(float(sr / peak))
+                    if len(pitches) > 3:
+                        mean_pitch = float(np.mean(pitches))
+                        std_pitch = float(np.std(pitches))
                     else:
                         mean_pitch = 170.0
                         std_pitch = 22.0

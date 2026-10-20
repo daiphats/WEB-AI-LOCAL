@@ -316,12 +316,12 @@ async def evaluate_vocal_assessment(request: Request):
             "smile_score": 0.0,
             "audio_volume_avg": avg_vol,
             "final_score": 0,
-            "status_label": "KHÔNG HỢP LỆ (THIẾU CẢ MẶT & GIỌNG NÓI)",
+            "status_label": "KHÔNG HỢP LỆ - THIẾU CẢ MẶT VÀ GIỌNG NÓI",
             "face_detail": "Không phát hiện khuôn mặt nào trong ống kính",
-            "voice_detail": "Micro không ghi nhận giọng nói (Chỉ có tạp âm hoặc im lặng)",
-            "congruence_detail": "0% (Thiếu toàn bộ dữ liệu sinh trắc học)",
+            "voice_detail": "Micro không ghi nhận giọng nói - chỉ có tạp âm hoặc im lặng",
+            "congruence_detail": "0% - Thiếu toàn bộ dữ liệu sinh trắc học",
             "burnout_detail": "Không thể đánh giá do thiếu dữ liệu đầu vào",
-            "prescription": "Đánh giá KHÔNG HỢP LỆ. Hệ thống không phát hiện khuôn mặt và không thu được âm thanh giọng nói của bạn. Vui lòng bật camera, ngồi trước ống kính và đọc to câu thử nghiệm để nhận kết quả chính xác.",
+            "prescription": "Đánh giá chưa hợp lệ. Hệ thống không phát hiện khuôn mặt và không thu được âm thanh giọng nói của bạn. Vui lòng bật camera, ngồi trước ống kính và đọc to câu thử nghiệm để nhận kết quả chính xác.",
             "emotion": "KHÔNG XÁC ĐỊNH",
             "valence": 0.0,
             "arousal": 0.0
@@ -340,11 +340,11 @@ async def evaluate_vocal_assessment(request: Request):
             "smile_score": 0.0,
             "audio_volume_avg": avg_vol,
             "final_score": 0,
-            "status_label": "CHƯA ĐẠT (KHÔNG TÌM THẤY KHUÔN MẶT TRONG CAMERA)",
+            "status_label": "CHƯA ĐẠT - KHÔNG TÌM THẤY KHUÔN MẶT TRONG CAMERA",
             "face_detail": "Không phát hiện khuôn mặt nào trong khung hình camera",
-            "voice_detail": f"Đã nhận diện giọng đọc{f': «{req.speech_transcript[:35]}...»' if req.speech_transcript else ''} (Âm lượng {round(avg_vol*100)}%), nhưng thiếu nét mặt để đối chiếu",
-            "congruence_detail": "0% (Không thể đo độ đồng pha khi không có khuôn mặt)",
-            "burnout_detail": "Chưa xác định (Thiếu dữ liệu khuôn mặt)",
+            "voice_detail": f"Đã nhận diện giọng đọc{f': «{req.speech_transcript[:35]}...»' if req.speech_transcript else ''} - âm lượng {round(avg_vol*100)}%, nhưng thiếu nét mặt để đối chiếu",
+            "congruence_detail": "0% - Không thể đo độ đồng pha khi không có khuôn mặt",
+            "burnout_detail": "Chưa xác định - thiếu dữ liệu khuôn mặt",
             "prescription": "Hệ thống đã nhận diện được giọng nói của bạn nhưng camera không quét được khuôn mặt nào trong khung hình. Vui lòng căn chỉnh lại góc camera hướng thẳng vào mặt và thực hiện lại.",
             "emotion": "KHÔNG CÓ MẶT",
             "valence": 0.0,
@@ -353,8 +353,8 @@ async def evaluate_vocal_assessment(request: Request):
 
     # 3. TRƯỜNG HỢP: CÓ MẶT NHƯNG KHÔNG NÓI / CHỈ CÓ TẠP ÂM (Ngồi trước cam nhưng im lặng hoặc chỉ có tiếng ồn)
     if face_detected and not has_speech:
-        smile_text = f"Nụ cười Duchenne (+{round(smile_score*100)}%)" if is_smiling else "Nét mặt điềm tĩnh"
-        noise_msg = "Chỉ ghi nhận tạp âm môi trường/quạt gió, không nhận diện được tiếng nói" if has_ambient_noise else "Micro im lặng hoàn toàn"
+        smile_text = f"Nụ cười Duchenne {round(smile_score*100)}%" if is_smiling else "Nét mặt điềm tĩnh"
+        noise_msg = "Chỉ ghi nhận tạp âm môi trường, không nhận diện được tiếng nói" if has_ambient_noise else "Micro im lặng hoàn toàn"
         return JSONResponse({
             "prompt_id": req.prompt_id,
             "valid_assessment": False,
@@ -366,12 +366,12 @@ async def evaluate_vocal_assessment(request: Request):
             "smile_score": smile_score,
             "audio_volume_avg": avg_vol,
             "final_score": 0,
-            "status_label": "CHƯA ĐẠT (KHÔNG PHÁT HIỆN GIỌNG NÓI HỢP LỆ)",
-            "face_detail": f"Đã nhận diện khuôn mặt ({smile_text})",
-            "voice_detail": f"CẢNH BÁO: {noise_msg} khi đọc văn bản",
-            "congruence_detail": "0% (Không có giọng nói để so sánh đồng bộ cảm xúc)",
-            "burnout_detail": "Chưa hoàn tất (Khuyết kênh âm thanh giọng nói)",
-            "prescription": "Camera đã ghi nhận nét mặt thành công nhưng microphone KHÔNG nhận diện được giọng đọc của bạn (chỉ thu được tạp âm nền). Vui lòng ngồi gần micro hơn, đọc to và rõ ràng đoạn văn để AI tiến hành phân tích ngữ điệu sinh trắc học.",
+            "status_label": "CHƯA ĐẠT - KHÔNG PHÁT HIỆN GIỌNG NÓI HỢP LỆ",
+            "face_detail": f"Đã nhận diện khuôn mặt - {smile_text}",
+            "voice_detail": f"Cảnh báo: {noise_msg} khi đọc văn bản",
+            "congruence_detail": "0% - Không có giọng nói để so sánh đồng bộ cảm xúc",
+            "burnout_detail": "Chưa hoàn tất - khuyết kênh âm thanh giọng nói",
+            "prescription": "Camera đã ghi nhận nét mặt thành công nhưng microphone không nhận diện được giọng đọc của bạn. Vui lòng ngồi gần micro hơn, đọc to và rõ ràng đoạn văn để AI tiến hành phân tích ngữ điệu sinh trắc học.",
             "emotion": prediction["emotion"],
             "valence": prediction["valence"],
             "arousal": 0.1
@@ -383,18 +383,18 @@ async def evaluate_vocal_assessment(request: Request):
     final_score = int(max(60, min(98, round(base_score))))
 
     if final_score >= 82:
-        status_label = "TÂM THẦN ỔN ĐỊNH & THƯ THÁI"
+        status_label = "TÂM THẦN ỔN ĐỊNH VÀ THƯ THÁI"
         presc = "Chỉ số cân bằng thần kinh của bạn rất tốt. Sự phối hợp giữa giọng điệu và nét mặt thể hiện tâm lý vững vàng. Hãy tiếp tục duy trì tư thế ngồi thẳng và bổ sung nước ấm."
     elif final_score >= 70:
         status_label = "CĂNG THẲNG MỨC ĐỘ NHẸ"
         presc = "Hệ thống ghi nhận dấu hiệu căng cứng nhẹ ở cơ mặt hoặc âm điệu giọng nói. Khuyến nghị thực hiện 3 chu kỳ thở sâu 4-7-8 và thư giãn cơ vai."
     else:
-        status_label = "ÁP LỰC / MỆT MỎI TÂM LÝ"
+        status_label = "ÁP LỰC VÀ MỆT MỎI TÂM LÝ"
         presc = "Hệ thống phát hiện dấu hiệu mệt mỏi và phân tán cảm xúc. Khuyến nghị rời màn hình 5 phút, chớp mắt thư giãn theo quy tắc 20-20-20 và nghe nhạc sóng Alpha."
 
-    face_desc = f"Nụ cười Duchenne tự nhiên (+{round(smile_score*100)}%), cơ mặt thư giãn" if is_smiling else "Nét mặt điềm tĩnh, trương lực cơ trán thư giãn chuẩn lâm sàng"
-    voice_desc = f"Đã nhận diện giọng đọc rõ ràng{f' («{req.speech_transcript[:35]}...»)' if req.speech_transcript else ''} (Âm lượng {round(avg_vol*100)}%), âm phổ thanh quản đồng pha nét mặt"
-    cong_desc = f"{int(synchrony)}% (Cao - Lời nói và biểu cảm nét mặt đồng nhất)"
+    face_desc = f"Nụ cười Duchenne tự nhiên {round(smile_score*100)}%, cơ mặt thư giãn" if is_smiling else "Nét mặt điềm tĩnh, trương lực cơ trán thư giãn chuẩn lâm sàng"
+    voice_desc = f"Đã nhận diện giọng đọc rõ ràng{f': «{req.speech_transcript[:35]}...»' if req.speech_transcript else ''} - âm lượng {round(avg_vol*100)}%, âm phổ thanh quản đồng pha nét mặt"
+    cong_desc = f"{int(synchrony)}% - Lời nói và biểu cảm nét mặt đồng nhất"
 
     return JSONResponse({
         "prompt_id": req.prompt_id,
