@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <circle cx="100" cy="100" r="90" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="75" fill="none" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4,4"/>
+  
+  <path d="M 50,85 C 50,45 150,45 150,85 C 150,140 130,165 100,165 C 70,165 50,140 50,85 Z" fill="#FFFFFF" stroke="#475569" stroke-width="2"/>
+  
+  <!-- Slightly lowered focused eyebrows (Corrugator) -->
+  <path d="M 66,74 L 94,80" stroke="#0F172A" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 134,74 L 106,80" stroke="#0F172A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Glabella subtle furrow -->
+  <line x1="98" y1="76" x2="98" y2="82" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="102" y1="76" x2="102" y2="82" stroke="#94A3B8" stroke-width="1.5"/>
+
+  <!-- Focused narrowed pupils -->
+  <ellipse cx="80" cy="94" rx="9" ry="5.5" fill="none" stroke="#0F172A" stroke-width="2"/>
+  <circle cx="80" cy="94" r="3.5" fill="#0F172A"/>
+
+  <ellipse cx="120" cy="94" rx="9" ry="5.5" fill="none" stroke="#0F172A" stroke-width="2"/>
+  <circle cx="120" cy="94" r="3.5" fill="#0F172A"/>
+
+  <!-- Nose -->
+  <path d="M 100,86 L 98,110 L 104,111" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Firm resolved mouth line -->
+  <line x1="80" y1="132" x2="120" y2="132" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+
+  <text x="100" y="185" font-family="'JetBrains Mono', monospace" font-size="8" fill="#64748B" text-anchor="middle">CORRUGATOR SUPERCILII VECTOR</text>
+</svg>
