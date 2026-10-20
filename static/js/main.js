@@ -2075,12 +2075,12 @@ class ClinicalStationApp {
       if (instruction) {
         instruction.textContent = "Hệ thống AI đang phân tích đồng pha nét mặt, tư thế và âm phổ giọng nói...";
       }
-      if (stepTimerLabel) {
-        stepTimerLabel.textContent = "Đang trích xuất đặc trưng sinh trắc học...";
+      if (timerLabel) {
+        timerLabel.textContent = "Đang trích xuất đặc trưng sinh trắc học...";
       }
-      if (stepTimerBar) {
-        stepTimerBar.style.width = "100%";
-        stepTimerBar.style.transition = "width 0.3s ease";
+      if (progressBar) {
+        progressBar.style.width = "100%";
+        progressBar.style.transition = "width 0.3s ease";
       }
 
       // Gửi dữ liệu đồng thời (Parallel Promise.all) để tối ưu thời gian phản hồi
