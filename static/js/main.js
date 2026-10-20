@@ -916,9 +916,34 @@ class ClinicalStationApp {
       }
     }
 
-    if (emotionMetric) emotionMetric.textContent = data.emotion;
+    // Format human-friendly clinical emotion
+    if (emotionMetric) {
+      const rawE = String(data.emotion || "").trim();
+      let displayEmotion = "Điềm tĩnh, cân bằng";
+      if (!data.face_detected || rawE.includes("KHÔNG PHÁT HIỆN") || rawE.includes("NO_FACE") || rawE.includes("Chưa")) {
+        displayEmotion = "Chờ nhận diện khuôn mặt";
+      } else if (rawE.includes("HAPPY") || rawE.includes("EQUILIBRIUM") || rawE.includes("Cười")) {
+        displayEmotion = "Vui tươi, tích cực";
+      } else if (rawE.includes("SAD") || rawE.includes("DEPRESSIVE") || rawE.includes("Mệt")) {
+        displayEmotion = "Mệt mỏi, uể oải";
+      } else if (rawE.includes("ANGRY") || rawE.includes("AROUSAL") || rawE.includes("Căng")) {
+        displayEmotion = "Căng thẳng cao";
+      } else if (rawE.startsWith("VOCAL:")) {
+        displayEmotion = rawE.replace("VOCAL:", "Giọng nói:").trim();
+      }
+      emotionMetric.textContent = displayEmotion;
+    }
+
     if (vaMetric) {
-      vaMetric.textContent = `VAL: ${data.valence >= 0 ? '+' : ''}${data.valence} | AROU: ${data.arousal >= 0 ? '+' : ''}${data.arousal}`;
+      let valLabel = "Cân bằng";
+      if (data.valence > 0.15) valLabel = "Tích cực";
+      else if (data.valence < -0.15) valLabel = "Mệt mỏi";
+
+      let arouLabel = "Thư giãn";
+      if (data.arousal > 0.25) arouLabel = "Kích hoạt";
+      else if (data.arousal < -0.25) arouLabel = "Trầm lắng";
+
+      vaMetric.textContent = `${valLabel} • ${arouLabel}`;
     }
     if (confMetric) confMetric.textContent = `${data.confidence}%`;
 
@@ -937,17 +962,17 @@ class ClinicalStationApp {
 
     if (faceStatus) {
       faceStatus.textContent = this.isSmiling
-        ? "Cười tươi / Hài lòng (+0.75)"
-        : (data.valence < -0.2 ? "Căng thẳng / Kiệt sức" : "Thư giãn tự nhiên");
+        ? "Cười tươi, hài lòng"
+        : (data.valence < -0.2 ? "Căng thẳng, mệt mỏi" : "Thư giãn tự nhiên");
     }
     if (bodyStatus) {
       bodyStatus.textContent = data.posture_warning
-        ? "Nghiêng cổ / Chùng vai"
+        ? "Nghiêng cổ, chùng vai"
         : "Thẳng trục chuẩn";
     }
     if (speechStatus) {
       speechStatus.textContent = data.incongruence_detected
-        ? "Dao động tần số / Gượng ép"
+        ? "Dao động tần số, gượng ép"
         : "Ổn định, điềm tĩnh";
     }
     if (textStatus) {
@@ -1016,21 +1041,21 @@ class ClinicalStationApp {
       blinkBpmEl.textContent = bpm > 0 ? bpm.toFixed(1) : "--";
       if (blinkClinicalEl) {
         if (bpm > 26) {
-          blinkClinicalEl.textContent = "Tần suất chớp mắt cao (> 26 BPM): Dấu hiệu mỏi mắt hoặc căng thẳng thị giác.";
+          blinkClinicalEl.textContent = "Tần suất chớp mắt cao trên 26 lần/phút: Dấu hiệu mỏi mắt hoặc căng thẳng thị giác.";
         } else if (bpm > 0 && bpm < 8) {
-          blinkClinicalEl.textContent = "Tần suất chớp mắt thấp (< 8 BPM): Tập trung cao độ hoặc nguy cơ khô giác mạc.";
+          blinkClinicalEl.textContent = "Tần suất chớp mắt thấp dưới 8 lần/phút: Tập trung cao độ hoặc nguy cơ khô giác mạc.";
         } else {
-          blinkClinicalEl.textContent = "Nhịp bình thường chuẩn người trưởng thành: 12 - 20 nhịp/phút.";
+          blinkClinicalEl.textContent = "Nhịp chớp mắt bình thường: 12 - 20 lần/phút.";
         }
       }
     }
 
     if (blinkStateEl && data.is_blinking !== undefined) {
       if (data.is_blinking) {
-        blinkStateEl.textContent = "CHỚP MẮT";
+        blinkStateEl.textContent = "Đang chớp";
         blinkStateEl.className = "badge badge-warning";
       } else {
-        blinkStateEl.textContent = "MẮT MỞ";
+        blinkStateEl.textContent = "Mắt mở";
         blinkStateEl.className = "badge badge-success";
       }
     }
@@ -1078,13 +1103,13 @@ class ClinicalStationApp {
       }
       if (fidgetStatusEl) {
         if (score > 40 || headRestless) {
-          fidgetStatusEl.textContent = headRestless ? "BỒN CHỒN / ĐẢO ĐẦU" : "BỒN CHỒN CAO";
+          fidgetStatusEl.textContent = headRestless ? "Dao động nhiều" : "Bồn chồn cao";
           fidgetStatusEl.className = "badge badge-danger";
         } else if (score > 20 || isHeadTurned) {
-          fidgetStatusEl.textContent = isHeadTurned ? "ĐẦU DAO ĐỘNG" : "DAO ĐỘNG NHẸ";
+          fidgetStatusEl.textContent = isHeadTurned ? "Đầu dao động" : "Dao động nhẹ";
           fidgetStatusEl.className = "badge badge-warning";
         } else {
-          fidgetStatusEl.textContent = "ĐIỀM TĨNH";
+          fidgetStatusEl.textContent = "Điềm tĩnh";
           fidgetStatusEl.className = "badge badge-success";
         }
       }
@@ -1096,19 +1121,19 @@ class ClinicalStationApp {
 
     if (postureStateEl) {
       if (headRestless) {
-        postureStateEl.textContent = "BỒN CHỒN (LẮC / QUAY ĐẦU)";
+        postureStateEl.textContent = "Dao động nhiều";
         postureStateEl.style.color = "#EF4444";
       } else if (data.posture_warning || isHeadTurned) {
         if (Math.abs(yaw) > 22) {
-          postureStateEl.textContent = `QUAY MẶT (${yaw > 0 ? "PHẢI" : "TRÁI"} ${Math.abs(yaw).toFixed(0)}°)`;
+          postureStateEl.textContent = `Quay mặt ${yaw > 0 ? "phải" : "trái"} ${Math.abs(yaw).toFixed(0)}°`;
         } else if (headTilt > 18) {
-          postureStateEl.textContent = `CÚI / NGỬA CỔ (${headTilt.toFixed(0)}°)`;
+          postureStateEl.textContent = `Cúi hoặc ngửa cổ ${headTilt.toFixed(0)}°`;
         } else {
-          postureStateEl.textContent = "LỆCH TRỤC CỔ";
+          postureStateEl.textContent = "Lệch trục cổ";
         }
         postureStateEl.style.color = "#F59E0B";
       } else {
-        postureStateEl.textContent = "ỔN ĐỊNH - VỮNG TRỤC";
+        postureStateEl.textContent = "Ổn định, vững trục";
         postureStateEl.style.color = "#10B981";
       }
     }
@@ -1477,7 +1502,7 @@ class ClinicalStationApp {
       if (phase === "INHALE") {
         if (timerText) timerText.textContent = `0${count}`;
         if (phaseBadge) {
-          phaseBadge.textContent = "Hít vào sâu qua mũi (4s)";
+          phaseBadge.textContent = "Hít vào sâu qua mũi";
           phaseBadge.className = "badge badge-clinical";
         }
         if (innerCircle) innerCircle.style.transform = "scale(1.5)";
@@ -1490,7 +1515,7 @@ class ClinicalStationApp {
       } else if (phase === "HOLD") {
         if (timerText) timerText.textContent = `0${count}`;
         if (phaseBadge) {
-          phaseBadge.textContent = "Giữ hơi thở & thả lỏng vai (7s)";
+          phaseBadge.textContent = "Giữ hơi thở, thả lỏng vai";
           phaseBadge.className = "badge badge-warning";
         }
         count--;
@@ -1501,7 +1526,7 @@ class ClinicalStationApp {
       } else if (phase === "EXHALE") {
         if (timerText) timerText.textContent = `0${count}`;
         if (phaseBadge) {
-          phaseBadge.textContent = "Thở ra chậm qua môi (8s)";
+          phaseBadge.textContent = "Thở ra từ từ qua miệng";
           phaseBadge.className = "badge badge-success";
         }
         if (innerCircle) innerCircle.style.transform = "scale(1.0)";
@@ -1727,9 +1752,9 @@ class ClinicalStationApp {
     }, 280);
 
     // -----------------------------------------------------------
-    // BƯỚC 1: Quét Khuôn Mặt & Trương Lực Cơ (5 giây)
+    // BƯỚC 1: Quét Khuôn Mặt & Trương Lực Cơ - 5 giây
     // -----------------------------------------------------------
-    if (badge) badge.textContent = "BƯỚC 1/3: QUÉT KHUÔN MẶT & TƯ THẾ (5 GIÂY)";
+    if (badge) badge.textContent = "BƯỚC 1/3: QUÉT KHUÔN MẶT VÀ TƯ THẾ - 5 GIÂY";
     if (instruction) instruction.textContent = "Hãy ngồi thẳng trước camera, nhìn thẳng vào ống kính và giữ nét mặt tự nhiên...";
     if (promptBox) promptBox.style.display = "none";
 
@@ -1757,9 +1782,9 @@ class ClinicalStationApp {
     if (this.lastFaceDetected) faceSeenDuringTest = true;
 
     // -----------------------------------------------------------
-    // BƯỚC 2: Đọc Đoạn Văn & Ghi Âm Giọng Nói (7 giây)
+    // BƯỚC 2: Đọc Đoạn Văn & Ghi Âm Giọng Nói - 7 giây
     // -----------------------------------------------------------
-    if (badge) badge.textContent = "BƯỚC 2/3: PHÂN TÍCH GIỌNG NÓI & NÉT MẶT (7 GIÂY)";
+    if (badge) badge.textContent = "BƯỚC 2/3: PHÂN TÍCH GIỌNG NÓI VÀ NÉT MẶT - 7 GIÂY";
     if (instruction) instruction.textContent = "Hãy đọc to câu bên dưới vào micro để AI đo lường độ đồng pha cảm xúc và âm phổ:";
     if (promptBox) {
       promptBox.style.display = "block";
@@ -1970,9 +1995,9 @@ class ClinicalStationApp {
     }
 
     // -----------------------------------------------------------
-    // BƯỚC 3: Phản Xạ Nụ Cười Duchenne (3 giây)
+    // BƯỚC 3: Phản Xạ Nụ Cười - 3 giây
     // -----------------------------------------------------------
-    if (badge) badge.textContent = "BƯỚC 3/3: PHẢN XẠ NỤ CƯỜI DUCHENNE (3 GIÂY)";
+    if (badge) badge.textContent = "BƯỚC 3/3: PHẢN XẠ NỤ CƯỜI - 3 GIÂY";
     if (instruction) instruction.textContent = "Hãy mỉm cười tự nhiên trong 3 giây để kiểm tra phản xạ co cơ gò má lớn...";
     if (promptBox) promptBox.style.display = "none";
     await this.runStepTimer(3, progressBar, timerLabel);
@@ -2955,11 +2980,11 @@ class GuidedAssessmentSession {
     if (retestRow) retestRow.style.display = "none";
     if (countdownWrapper) countdownWrapper.style.display = "flex";
     if (statusBadge) {
-      statusBadge.textContent = "Đang đánh giá (15s)";
+      statusBadge.textContent = "Đang đánh giá";
       statusBadge.className = "badge badge-warning";
     }
     if (modeBadge) {
-      modeBadge.textContent = "Đang đánh giá (15s)";
+      modeBadge.textContent = "Đang đánh giá";
       modeBadge.className = "badge badge-warning";
     }
     if (countdownVal) countdownVal.textContent = "15s";
@@ -3092,7 +3117,7 @@ class GuidedAssessmentSession {
           this.mediaRecorder.onstop = resolve;
           this.mediaRecorder.stop();
         });
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Stop Stream tracks
@@ -3103,11 +3128,11 @@ class GuidedAssessmentSession {
 
     // Disconnect processor & close AudioContext
     if (this.processor) {
-      try { this.processor.disconnect(); } catch (e) {}
+      try { this.processor.disconnect(); } catch (e) { }
       this.processor = null;
     }
     if (this.analyser) {
-      try { this.analyser.disconnect(); } catch (e) {}
+      try { this.analyser.disconnect(); } catch (e) { }
       this.analyser = null;
     }
 
@@ -3121,7 +3146,7 @@ class GuidedAssessmentSession {
       }
       try {
         if (this.audioCtx.state !== "closed") await this.audioCtx.close();
-      } catch (e) {}
+      } catch (e) { }
       this.audioCtx = null;
     }
 
@@ -3286,7 +3311,7 @@ class GuidedAssessmentSession {
     }
 
     // 4. Overall Diagnostic Verdict calculation (Stable / Restless)
-    let verdictTitle = "Trạng thái: Ổn định / Tỉnh táo (Stable)";
+    let verdictTitle = "Trạng thái: Ổn định và tỉnh táo";
     let verdictDesc = "Tần suất chớp mắt, tư thế đầu và năng lượng giọng nói đều đạt trạng thái điều hòa tự nhiên.";
     let verdictClass = "verdict-stable";
     let verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -3305,12 +3330,12 @@ class GuidedAssessmentSession {
       blinkState = "Chưa đo được";
       blinkBadgeClass = "badge-danger";
     } else if (isNonIdeal) {
-      verdictTitle = "Trạng thái: Bồn chồn / Căng thẳng (Restless)";
+      verdictTitle = "Trạng thái: Bồn chồn hoặc căng thẳng";
       verdictDesc = "Hệ thống ghi nhận dấu hiệu bồn chồn ở cử động đầu hoặc sự căng thẳng trong âm sắc giọng nói. Nên thả lỏng cơ mặt và thở sâu.";
       verdictClass = "verdict-danger";
       verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
     } else if (isModerate) {
-      verdictTitle = "Trạng thái: Dao động nhẹ / Cần nghỉ ngơi";
+      verdictTitle = "Trạng thái: Dao động nhẹ, cần nghỉ ngơi";
       verdictDesc = "Phát hiện dao động nhẹ ở tư thế đầu hoặc nhịp chớp mắt. Vui lòng thả lỏng cơ vai và hít thở điều hòa.";
       verdictClass = "verdict-warning";
       verdictIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
@@ -3354,7 +3379,7 @@ class GuidedAssessmentSession {
 
     const vocMetric = document.getElementById("session-res-voice-metric");
     const vocBadge = document.getElementById("session-res-voice-badge");
-    if (vocMetric) vocMetric.textContent = `${vocalLabel} (${vocalConf}%)`;
+    if (vocMetric) vocMetric.textContent = `${vocalLabel} • ${vocalConf}%`;
     if (vocBadge) {
       vocBadge.textContent = vocalLabel;
       vocBadge.className = `session-badge-state badge ${vocalBadgeClass}`;
@@ -3395,7 +3420,7 @@ class GuidedAssessmentSession {
     }
     if (startBtn) {
       startBtn.style.display = "flex";
-      if (startBtnLbl) startBtnLbl.textContent = "Bắt đầu kiểm tra lại (15s)";
+      if (startBtnLbl) startBtnLbl.textContent = "Bắt đầu kiểm tra lại";
     }
   }
 }

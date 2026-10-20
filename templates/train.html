@@ -42,7 +42,7 @@
           Đang kết nối camera sinh trắc học...
         </span>
         <div id="gate-score-metric" style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-secondary);">
-          Độ tương đồng ResNet50: --% (Ngưỡng đạt 70.0%)
+          Độ tương đồng ResNet50: --% • Ngưỡng đạt 70.0%
         </div>
       </div>
 
@@ -95,7 +95,7 @@
       <!-- ==================== MODULE 4: HARDWARE TELEMETRY ==================== -->
       <div class="glass-panel monitor-card">
         <div class="card-header-row">
-          <span class="card-title">Giám sát phần cứng tức thời (Hardware Telemetry)</span>
+          <span class="card-title">Giám sát phần cứng tức thời</span>
           <span class="badge badge-neutral">Phần cứng cục bộ</span>
         </div>
         <div class="telemetry-row" style="grid-template-columns: repeat(4, 1fr);">
@@ -104,16 +104,16 @@
             <div class="cell-value" id="telemetry-cpu">--%</div>
           </div>
           <div class="telemetry-cell">
-            <div class="cell-label">System RAM (Used / Total)</div>
+            <div class="cell-label">Bộ nhớ RAM hệ thống</div>
             <div class="cell-value" id="telemetry-ram" style="font-size:0.92rem;">-- GB</div>
           </div>
           <div class="telemetry-cell">
             <div class="cell-label">GPU VRAM</div>
-            <div class="cell-value" id="telemetry-vram" style="font-size:0.92rem;">N/A (CPU Mode)</div>
+            <div class="cell-value" id="telemetry-vram" style="font-size:0.92rem;">Chế độ CPU</div>
           </div>
           <div class="telemetry-cell">
             <div class="cell-label">GPU Nhiệt Độ</div>
-            <div class="cell-value" id="telemetry-temp" style="font-size:0.92rem;">N/A (CPU Mode)</div>
+            <div class="cell-value" id="telemetry-temp" style="font-size:0.92rem;">Chế độ CPU</div>
           </div>
         </div>
       </div>
@@ -124,18 +124,18 @@
         <!-- Module 1: Face Identity Bank -->
         <div class="glass-panel monitor-card">
           <div class="card-header-row">
-            <span class="card-title">1. Đăng ký nhận diện khuôn mặt (Face Identity Bank)</span>
+            <span class="card-title">1. Đăng ký nhận diện khuôn mặt</span>
             <span class="badge badge-clinical">ResNet50 Embeddings</span>
           </div>
 
           <div style="display:flex; flex-direction:column; gap:0.85rem;">
             <div class="form-group">
-              <label class="form-label">Tên định danh đối tượng (Subject Identity)</label>
-              <input type="text" id="enroll-name-input" class="form-input" placeholder="Ví dụ: Dr. Tai / Bệnh nhân A...">
+              <label class="form-label">Tên định danh đối tượng</label>
+              <input type="text" id="enroll-name-input" class="form-input" placeholder="Ví dụ: Bác sĩ / Bệnh nhân...">
             </div>
 
             <div class="form-group">
-              <label class="form-label">Tải lên ảnh chân dung (Portrait Image File)</label>
+              <label class="form-label">Tải lên ảnh chân dung</label>
               <input type="file" id="enroll-file-input" class="form-input" accept="image/*">
             </div>
 
@@ -151,7 +151,7 @@
         <!-- Module 3: CBT Knowledge Base Editor -->
         <div class="glass-panel monitor-card">
           <div class="card-header-row">
-            <span class="card-title">3. Cập nhật tri thức lâm sàng (CBT Knowledge Base)</span>
+            <span class="card-title">3. Cập nhật tri thức lâm sàng</span>
             <span class="badge badge-clinical">Quy tắc lâm sàng</span>
           </div>
 
@@ -162,7 +162,7 @@
                 <input type="text" id="cbt-rule-title" class="form-input" placeholder="Tên quy tắc...">
               </div>
               <div class="form-group">
-                <label class="form-label">Phân loại (Category)</label>
+                <label class="form-label">Phân loại danh mục</label>
                 <select id="cbt-rule-category" class="form-select">
                   <option value="COGNITIVE_DISTORTION">COGNITIVE_DISTORTION</option>
                   <option value="SOMATIC_REGULATION">SOMATIC_REGULATION</option>
@@ -174,12 +174,12 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">Nội dung nghị trình lâm sàng (Protocol)</label>
+              <label class="form-label">Nội dung quy trình lâm sàng</label>
               <textarea id="cbt-rule-protocol" class="form-textarea" placeholder="Mô tả cơ chế nhận diện và câu hỏi Socratic..."></textarea>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Đơn thuốc hành vi (Prescription Tag)</label>
+              <label class="form-label">Khuyến nghị điều chỉnh hành vi</label>
               <input type="text" id="cbt-rule-prescription" class="form-input" placeholder="Khuyến nghị điều chỉnh hành vi...">
             </div>
 
@@ -195,7 +195,7 @@
       <div class="glass-panel monitor-card">
         <div class="card-header-row">
           <div class="card-title-group">
-            <span class="card-title">2. Huấn luyện mạng hợp nhất cảm xúc (Multimodal Fusion Head)</span>
+            <span class="card-title">2. Huấn luyện mạng hợp nhất cảm xúc</span>
             <span class="badge badge-success">GMU &amp; Dynamic Attention</span>
           </div>
           <button class="btn btn-primary" id="initiate-train-btn">
@@ -226,11 +226,11 @@
         <!-- Realtime Loss/Acc Chart & Terminal Grid -->
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-top:0.5rem;">
           <div>
-            <div class="cell-label" style="margin-bottom:0.35rem; font-size:0.78rem;">Biểu đồ hội tụ huấn luyện (Loss / Accuracy):</div>
+            <div class="cell-label" style="margin-bottom:0.35rem; font-size:0.78rem;">Biểu đồ hội tụ huấn luyện:</div>
             <canvas id="train-chart-canvas" width="600" height="220" style="width:100%; height:220px; background:#FFFFFF; border:1px solid var(--border-subtle); border-radius:var(--radius-xs);"></canvas>
           </div>
           <div>
-            <div class="cell-label" style="margin-bottom:0.35rem; font-size:0.78rem;">Nhật ký luồng huấn luyện thời gian thực (WebSocket):</div>
+            <div class="cell-label" style="margin-bottom:0.35rem; font-size:0.78rem;">Nhật ký luồng huấn luyện thời gian thực:</div>
             <div id="train-terminal" class="terminal-console">Chờ khởi chạy huấn luyện mô hình...</div>
           </div>
         </div>
@@ -240,25 +240,25 @@
       <!-- ==================== MODULE 5: COGNITIVE DATA & CHECKPOINT INSPECTOR ==================== -->
       <div class="glass-panel monitor-card">
         <div class="card-header-row">
-          <span class="card-title">5. Bảng thanh tra dữ liệu &amp; bộ nhớ (Cognitive Data &amp; Checkpoint Inspector)</span>
+          <span class="card-title">5. Bảng thanh tra dữ liệu và bộ nhớ</span>
           <span class="badge badge-clinical">Kiểm toán dữ liệu</span>
         </div>
 
         <!-- 5.A: Class Distribution -->
         <div style="background:var(--bg-card-subtle); padding:1rem; border-radius:var(--radius-xs); border:1px solid var(--border-subtle);">
-          <div class="cell-label" style="margin-bottom:0.6rem; font-size:0.78rem;">Phân bố mẫu của 6 nhãn cảm xúc (Class Distribution):</div>
+          <div class="cell-label" style="margin-bottom:0.6rem; font-size:0.78rem;">Phân bố mẫu của 6 nhãn cảm xúc:</div>
           <div id="class-distribution-bars" style="display:flex; flex-direction:column; gap:0.4rem;"></div>
         </div>
 
         <!-- 5.B: Face Identities Ledger -->
         <div>
-          <div class="cell-label" style="margin-bottom:0.5rem; font-size:0.78rem;">Danh mục khuôn mặt đã nhớ (Face Identities Ledger):</div>
+          <div class="cell-label" style="margin-bottom:0.5rem; font-size:0.78rem;">Danh mục khuôn mặt đã lưu trữ:</div>
           <div id="face-identities-ledger" class="inspector-card-grid"></div>
         </div>
 
         <!-- 5.C: CBT Knowledge Table -->
         <div>
-          <div class="cell-label" style="margin-bottom:0.5rem; font-size:0.78rem;">Kho tri thức can thiệp CBT hiện có (Clinical Rule Repository):</div>
+          <div class="cell-label" style="margin-bottom:0.5rem; font-size:0.78rem;">Kho tri thức can thiệp CBT hiện có:</div>
           <div style="overflow-x:auto; background:#FFFFFF; border:1px solid var(--border-subtle); border-radius:var(--radius-xs);">
             <table class="data-table">
               <thead>
@@ -277,7 +277,7 @@
 
         <!-- 5.D: Model Checkpoints Registry Table -->
         <div>
-          <div class="cell-label" style="margin-bottom:0.5rem; font-size:0.78rem;">Nhật ký &amp; khôi phục checkpoint (Model Version Registry):</div>
+          <div class="cell-label" style="margin-bottom:0.5rem; font-size:0.78rem;">Nhật ký và khôi phục checkpoint:</div>
           <div style="overflow-x:auto; background:#FFFFFF; border:1px solid var(--border-subtle); border-radius:var(--radius-xs);">
             <table class="data-table">
               <thead>

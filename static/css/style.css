@@ -13,11 +13,11 @@
   --bg-surface-elevated: #FFFFFF;
   --bg-card: #FFFFFF;
   --bg-card-subtle: #F1F5F9;
-  
+
   --border-subtle: #CBD5E1;
   --border-active: #0E7490;
   --border-glass: #94A3B8;
-  
+
   --text-primary: #090D16;
   --text-secondary: #1E293B;
   --text-muted: #334155;
@@ -31,7 +31,7 @@
   --accent-warning-soft: rgba(180, 83, 9, 0.12);
   --accent-danger: #B91C1C;
   --accent-danger-soft: rgba(185, 28, 28, 0.12);
-  
+
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
   --shadow-md: 0 4px 12px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.09), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
@@ -46,7 +46,9 @@
   --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -72,10 +74,22 @@ body {
 }
 
 /* Global Typography Readability & Contrast Guarantees */
-.cell-label, .form-label, .channel-name, .channel-val, .brand-badge,
-.step-badge, .hud-overlay-text, .identity-date, .identity-vec,
-.controller-mic-label, .controller-mic-val, .cbt-suggestion-chips .chip-btn,
-.data-table th, .data-table td, .prescription-title, .prescription-desc {
+.cell-label,
+.form-label,
+.channel-name,
+.channel-val,
+.brand-badge,
+.step-badge,
+.hud-overlay-text,
+.identity-date,
+.identity-vec,
+.controller-mic-label,
+.controller-mic-val,
+.cbt-suggestion-chips .chip-btn,
+.data-table th,
+.data-table td,
+.prescription-title,
+.prescription-desc {
   font-size: 0.80rem !important;
   font-weight: 600;
   color: var(--text-secondary);
@@ -102,16 +116,23 @@ body {
 }
 
 /* Force high contrast and legible sizing on faint inline styles */
-[style*="color:#94A3B8"], [style*="color: #94A3B8"],
-[style*="color:#CBD5E1"], [style*="color: #CBD5E1"],
-[style*="color:rgba(255,255,255,0.7)"], [style*="color: rgba(255,255,255,0.7)"] {
+[style*="color:#94A3B8"],
+[style*="color: #94A3B8"],
+[style*="color:#CBD5E1"],
+[style*="color: #CBD5E1"],
+[style*="color:rgba(255,255,255,0.7)"],
+[style*="color: rgba(255,255,255,0.7)"] {
   color: var(--text-muted) !important;
 }
 
-[style*="font-size:0.5"], [style*="font-size: 0.5"],
-[style*="font-size:0.6"], [style*="font-size: 0.6"],
-[style*="font-size:0.70"], [style*="font-size: 0.70"],
-[style*="font-size:0.72"], [style*="font-size: 0.72"] {
+[style*="font-size:0.5"],
+[style*="font-size: 0.5"],
+[style*="font-size:0.6"],
+[style*="font-size: 0.6"],
+[style*="font-size:0.70"],
+[style*="font-size: 0.70"],
+[style*="font-size:0.72"],
+[style*="font-size: 0.72"] {
   font-size: 0.80rem !important;
 }
 
@@ -308,9 +329,20 @@ body {
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(0.95); opacity: 0.9; }
-  50% { transform: scale(1.3); opacity: 0.4; }
-  100% { transform: scale(0.95); opacity: 0.9; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
 }
 
 /* Main Container Layout */
@@ -332,8 +364,15 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* TAB 1: Clinical Monitor Grid */
@@ -406,17 +445,44 @@ body {
 }
 
 /* Viewport HUD Reticles */
-.hud-reticle-tl, .hud-reticle-tr, .hud-reticle-bl, .hud-reticle-br {
+.hud-reticle-tl,
+.hud-reticle-tr,
+.hud-reticle-bl,
+.hud-reticle-br {
   position: absolute;
   width: 16px;
   height: 16px;
   border-color: rgba(255, 255, 255, 0.6);
   pointer-events: none;
 }
-.hud-reticle-tl { top: 12px; left: 12px; border-top: 2px solid; border-left: 2px solid; }
-.hud-reticle-tr { top: 12px; right: 12px; border-top: 2px solid; border-right: 2px solid; }
-.hud-reticle-bl { bottom: 12px; left: 12px; border-bottom: 2px solid; border-left: 2px solid; }
-.hud-reticle-br { bottom: 12px; right: 12px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.hud-reticle-tl {
+  top: 12px;
+  left: 12px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.hud-reticle-tr {
+  top: 12px;
+  right: 12px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.hud-reticle-bl {
+  bottom: 12px;
+  left: 12px;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.hud-reticle-br {
+  bottom: 12px;
+  right: 12px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
 
 .hud-overlay-text {
   position: absolute;
@@ -435,14 +501,32 @@ body {
 }
 
 @keyframes modalPopIn {
-  0% { transform: scale(0.92); opacity: 0; }
-  100% { transform: scale(1.0); opacity: 1; }
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.0);
+    opacity: 1;
+  }
 }
 
 @keyframes statusPulse {
-  0% { transform: scale(0.95); opacity: 0.7; }
-  50% { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.7; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
 }
 
 .hud-status-dot-pulse {
@@ -646,7 +730,10 @@ body {
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #CBD5E1;
   transition: .3s;
   border-radius: 20px;
@@ -664,11 +751,11 @@ body {
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #0F172A;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(16px);
 }
 
@@ -864,13 +951,31 @@ input:checked + .slider:before {
   animation: typingBounce 1.4s infinite ease-in-out both;
 }
 
-.typing-dot:nth-child(1) { animation-delay: -0.32s; }
-.typing-dot:nth-child(2) { animation-delay: -0.16s; }
-.typing-dot:nth-child(3) { animation-delay: 0s; }
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0s;
+}
 
 @keyframes typingBounce {
-  0%, 80%, 100% { transform: scale(0.4); opacity: 0.3; }
-  40% { transform: scale(1.1); opacity: 1; }
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0.4);
+    opacity: 0.3;
+  }
+
+  40% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
 /* TAB 2: Affective Mimic Match Game */
@@ -940,7 +1045,10 @@ input:checked + .slider:before {
 
 .countdown-overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(8px);
   display: none;
@@ -963,7 +1071,10 @@ input:checked + .slider:before {
    ========================================================================== */
 .game-hud-overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(15, 23, 42, 0.84);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -980,6 +1091,7 @@ input:checked + .slider:before {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -1228,7 +1340,10 @@ input:checked + .slider:before {
    ========================================================================== */
 .biometric-gate-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(248, 250, 252, 0.94);
   backdrop-filter: blur(35px);
   -webkit-backdrop-filter: blur(35px);
@@ -1275,7 +1390,9 @@ input:checked + .slider:before {
 
 .gate-laser-line {
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 2px;
   background: #059669;
   box-shadow: 0 0 12px #10B981, 0 0 24px #10B981;
@@ -1283,13 +1400,21 @@ input:checked + .slider:before {
 }
 
 @keyframes laserScan {
-  0% { top: 4%; }
-  100% { top: 96%; }
+  0% {
+    top: 4%;
+  }
+
+  100% {
+    top: 96%;
+  }
 }
 
 .gate-hud-target {
   position: absolute;
-  top: 25px; left: 25px; right: 25px; bottom: 25px;
+  top: 25px;
+  left: 25px;
+  right: 25px;
+  bottom: 25px;
   border: 1px dashed rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-xs);
   pointer-events: none;
@@ -1422,7 +1547,9 @@ input:checked + .slider:before {
   color: var(--text-muted);
 }
 
-.form-input, .form-select, .form-textarea {
+.form-input,
+.form-select,
+.form-textarea {
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xs);
@@ -1432,7 +1559,9 @@ input:checked + .slider:before {
   outline: none;
 }
 
-.form-input:focus, .form-select:focus, .form-textarea:focus {
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
   border-color: var(--border-active);
 }
 
@@ -1468,9 +1597,17 @@ input:checked + .slider:before {
 }
 
 @keyframes dotPulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
 }
 
 .header-studio-btn {
@@ -1480,11 +1617,12 @@ input:checked + .slider:before {
   background: #FFFFFF;
   border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--text-primary);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
+
 .header-studio-btn:hover {
   background: #F8FAFC;
-  border-color: rgba(0,0,0,0.2);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 /* Guided Assessment Hero Banner */
@@ -1495,7 +1633,7 @@ input:checked + .slider:before {
   justify-content: space-between;
   align-items: center;
   gap: 1.25rem;
-  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240, 249, 255, 0.85));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.85));
   border: 1px solid rgba(2, 132, 199, 0.2);
   border-left: 4px solid var(--accent-clinical);
   box-shadow: 0 4px 16px rgba(2, 132, 199, 0.05);
@@ -1534,6 +1672,7 @@ input:checked + .slider:before {
   box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
   transition: all 0.2s ease;
 }
+
 .hero-start-btn:hover {
   background: #0369A1;
   transform: translateY(-1px);
@@ -1543,13 +1682,17 @@ input:checked + .slider:before {
 /* Guided Assessment Step Overlay on Camera (Docked at bottom/top, non-intrusive) */
 .assessment-step-overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   pointer-events: none;
   display: flex;
-  align-items: flex-end; /* Dock at the bottom so the camera face is 100% visible */
+  align-items: flex-end;
+  /* Dock at the bottom so the camera face is 100% visible */
   justify-content: center;
   z-index: 25;
   padding: 0.75rem 1rem;
@@ -1558,7 +1701,8 @@ input:checked + .slider:before {
 }
 
 .assessment-step-overlay.pos-top {
-  align-items: flex-start; /* Dock at the top when switched */
+  align-items: flex-start;
+  /* Dock at the top when switched */
 }
 
 .step-card {
@@ -1577,8 +1721,15 @@ input:checked + .slider:before {
 }
 
 @keyframes stepCardFade {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .step-pos-toggle-btn {
@@ -1699,7 +1850,10 @@ input:checked + .slider:before {
 /* 3-Step Assessment Scorecard Modal */
 .assessment-modal {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -1709,7 +1863,10 @@ input:checked + .slider:before {
 
 .assessment-modal-backdrop {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1731,8 +1888,15 @@ input:checked + .slider:before {
 }
 
 @keyframes modalScaleIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .modal-header {
@@ -1928,6 +2092,7 @@ input:checked + .slider:before {
   border-color: rgba(217, 119, 6, 0.25);
   color: #D97706;
 }
+
 .cam-status-chip.level-danger {
   background: rgba(220, 38, 38, 0.08);
   border-color: rgba(220, 38, 38, 0.22);
@@ -1954,11 +2119,13 @@ input:checked + .slider:before {
   box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .cam-btn-assess:hover {
   background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
   box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
   transform: translateY(-1px);
 }
+
 .cam-btn-assess:active {
   transform: translateY(0);
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
@@ -1983,17 +2150,20 @@ input:checked + .slider:before {
   white-space: nowrap;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .cam-btn-toggle:hover {
   border-color: rgba(100, 116, 139, 0.5);
   background: #F1F5F9;
   color: var(--text-primary);
 }
+
 /* When camera is ON, the toggle button turns red pill */
 .cam-btn-toggle.is-active {
   background: rgba(220, 38, 38, 0.07);
   border-color: rgba(220, 38, 38, 0.28);
   color: #DC2626;
 }
+
 .cam-btn-toggle.is-active:hover {
   background: rgba(220, 38, 38, 0.13);
   border-color: rgba(220, 38, 38, 0.45);
@@ -2018,19 +2188,23 @@ input:checked + .slider:before {
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .btn-shuffle-expression svg {
   flex-shrink: 0;
   transition: transform 0.35s ease;
 }
+
 .btn-shuffle-expression:hover {
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.18) 0%, rgba(139, 92, 246, 0.15) 100%);
   border-color: rgba(124, 58, 237, 0.6);
   box-shadow: 0 3px 12px rgba(124, 58, 237, 0.22);
   transform: translateY(-1px);
 }
+
 .btn-shuffle-expression:hover svg {
   transform: rotate(180deg);
 }
+
 .btn-shuffle-expression:active {
   transform: translateY(0);
   box-shadow: none;
@@ -2298,9 +2472,19 @@ input:checked + .slider:before {
 }
 
 @keyframes flashExplode {
-  0% { opacity: 0.95; transform: scale(0.98); }
-  40% { opacity: 0.85; }
-  100% { opacity: 0; transform: scale(1.03); }
+  0% {
+    opacity: 0.95;
+    transform: scale(0.98);
+  }
+
+  40% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.03);
+  }
 }
 
 /* Confetti Canvas */
@@ -2330,10 +2514,27 @@ input:checked + .slider:before {
 }
 
 @keyframes shakeLocked {
-  10%, 90% { transform: translate3d(-2px, 0, 0); }
-  20%, 80% { transform: translate3d(4px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-  40%, 60% { transform: translate3d(6px, 0, 0); }
+
+  10%,
+  90% {
+    transform: translate3d(-2px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(4px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-6px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(6px, 0, 0);
+  }
 }
 
 .slider-labels-row {
@@ -2445,9 +2646,17 @@ input:checked + .slider:before {
 }
 
 @keyframes cardPulseAlert {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .multiverse-prescription-card.task-card-success {
@@ -2568,7 +2777,7 @@ input:checked + .slider:before {
   width: 100%;
 }
 
-.ecg-telemetry-strip > div {
+.ecg-telemetry-strip>div {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -3042,8 +3251,15 @@ input:checked + .slider:before {
 }
 
 @keyframes sessionFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .session-verdict-banner {
@@ -3239,137 +3455,138 @@ input:checked + .slider:before {
   font-weight: 500;
   line-height: 1.6;
   color: var(--text-primary);
-.session-reading-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
 
-.session-reading-title {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  letter-spacing: 0.01em;
-}
-
-.session-script-card {
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  border-left: 3px solid #0284C7;
-  border-radius: 6px;
-  padding: 0.85rem 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-}
-
-.session-script-text {
-  font-size: 0.95rem;
-  font-weight: 500;
-  line-height: 1.6;
-  color: var(--text-primary);
-  letter-spacing: 0.01em;
-}
-
-/* Controller Live Mic VU Meter */
-.controller-mic-vu-box {
-  margin-top: 0.65rem;
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xs);
-  padding: 0.65rem 0.85rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.controller-mic-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.controller-mic-label {
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 700;
-  color: #0284C7;
-  letter-spacing: 0.02em;
-}
-
-.controller-mic-val {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  min-width: 2.2rem;
-  text-align: right;
-}
-
-.controller-mic-track {
-  width: 100%;
-  height: 8px;
-  background: rgba(0, 0, 0, 0.06);
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-}
-
-.controller-mic-fill {
-  width: 0%;
-  height: 100%;
-  background: linear-gradient(90deg, #10B981 0%, #0284C7 60%, #EF4444 100%);
-  border-radius: 999px;
-  transition: width 0.06s ease-out;
-}
-
-/* Compact Prescription Items in Tab 3 */
-#wellness-guidance-card .prescription-item {
-  border-left-width: 3px;
-  border-radius: var(--radius-xs);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-  transition: transform 0.15s ease;
-}
-
-#wellness-guidance-card .prescription-item:hover {
-  transform: translateY(-1px);
-}
-
-/* Tab 3 Face Lost Clinical Alert Overlays */
-.multiverse-face-alert-overlay {
-  position: absolute;
-  top: 28%;
-  left: 50%;
-  transform: translateX(-50%);
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(127, 29, 29, 0.94);
-  border: 1.5px solid #F87171;
-  border-radius: 8px;
-  padding: 0.95rem 1.6rem;
-  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 20;
-  text-align: center;
-  max-width: 90%;
-  animation: pulseFaceAlert 2s infinite ease-in-out;
-}
-
-@keyframes pulseFaceAlert {
-  0%, 100% {
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
-    border-color: #F87171;
+  .session-reading-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
   }
-  50% {
-    box-shadow: 0 12px 36px rgba(239, 68, 68, 0.7);
-    border-color: #EF4444;
+
+  .session-reading-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    letter-spacing: 0.01em;
   }
-}
 
+  .session-script-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid #0284C7;
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  }
 
+  .session-script-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+  }
 
+  /* Controller Live Mic VU Meter */
+  .controller-mic-vu-box {
+    margin-top: 0.65rem;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    padding: 0.65rem 0.85rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .controller-mic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .controller-mic-label {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: #0284C7;
+    letter-spacing: 0.02em;
+  }
+
+  .controller-mic-val {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    min-width: 2.2rem;
+    text-align: right;
+  }
+
+  .controller-mic-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .controller-mic-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #10B981 0%, #0284C7 60%, #EF4444 100%);
+    border-radius: 999px;
+    transition: width 0.06s ease-out;
+  }
+
+  /* Compact Prescription Items in Tab 3 */
+  #wellness-guidance-card .prescription-item {
+    border-left-width: 3px;
+    border-radius: var(--radius-xs);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: transform 0.15s ease;
+  }
+
+  #wellness-guidance-card .prescription-item:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Tab 3 Face Lost Clinical Alert Overlays */
+  .multiverse-face-alert-overlay {
+    position: absolute;
+    top: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(127, 29, 29, 0.94);
+    border: 1.5px solid #F87171;
+    border-radius: 8px;
+    padding: 0.95rem 1.6rem;
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 20;
+    text-align: center;
+    max-width: 90%;
+    animation: pulseFaceAlert 2s infinite ease-in-out;
+  }
+
+  @keyframes pulseFaceAlert {
+
+    0%,
+    100% {
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+      border-color: #F87171;
+    }
+
+    50% {
+      box-shadow: 0 12px 36px rgba(239, 68, 68, 0.7);
+      border-color: #EF4444;
+    }
+  }

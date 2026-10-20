@@ -735,7 +735,7 @@ class OpticalRPPGEngine {
     const peaks = [];
     for (let i = 2; i < smoothed.length - 2; i++) {
       if (smoothed[i] > 0.08 && smoothed[i] > smoothed[i - 1] && smoothed[i] > smoothed[i + 1] &&
-          smoothed[i] > smoothed[i - 2] && smoothed[i] > smoothed[i + 2]) {
+        smoothed[i] > smoothed[i - 2] && smoothed[i] > smoothed[i + 2]) {
         peaks.push(this.buffer[i].t);
       }
     }
@@ -2155,7 +2155,7 @@ class FutureMultiverseSimulation {
       gain.connect(this.audioCtx.destination);
       osc.start(now);
       osc.stop(now + duration + 0.05);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   playCelebrationChimeChord() {
@@ -2178,7 +2178,7 @@ class FutureMultiverseSimulation {
         osc.start(noteStart);
         osc.stop(noteStart + noteDuration + 0.1);
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   launchCelebrationConfetti() {

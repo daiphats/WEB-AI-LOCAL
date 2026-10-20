@@ -195,7 +195,7 @@ class AcousticTherapyManager {
           try {
             if (node.stop) node.stop();
             if (node.disconnect) node.disconnect();
-          } catch (e) {}
+          } catch (e) { }
         });
         this.ambientNodes = [];
         this.isAmbientPlaying = false;

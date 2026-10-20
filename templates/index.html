@@ -90,14 +90,16 @@
       <div class="glass-panel assessment-hero-banner" style="padding: 1rem 1.4rem; margin-bottom: 1.25rem;">
         <div class="hero-left">
           <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
-            <span class="hero-badge">Quy trình chẩn đoán lâm sàng</span>
+            <span class="hero-badge">Quy trình đánh giá lâm sàng</span>
             <span
-              style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-secondary); font-weight:600;">Quy chuẩn 20 giây</span>
+              style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-secondary); font-weight:600;">Thời
+              gian: 20 giây</span>
           </div>
-          <h2 class="hero-title" style="font-size:1.12rem; font-weight:700; margin-bottom:0.25rem;">Đánh giá tâm lý & sinh trắc học 3 bước</h2>
+          <h2 class="hero-title" style="font-size:1.12rem; font-weight:700; margin-bottom:0.25rem;">Đánh giá tâm lý và
+            sinh trắc học 3 bước</h2>
           <p class="hero-desc" style="font-size:0.84rem; line-height:1.55; margin:0; color:var(--text-secondary);">
-            Quy trình tự động 20 giây: Quét nét mặt & ánh mắt (5s) → Đọc câu kiểm tra giọng nói (7s) → Phản xạ nụ cười
-            (3s) → Xuất báo cáo điểm số chi tiết.
+            Quy trình tự động: 1. Quét nét mặt và tư thế → 2. Đọc câu kiểm tra giọng nói → 3. Phản xạ nụ cười → Xuất báo
+            cáo chi tiết.
           </p>
         </div>
       </div>
@@ -173,7 +175,7 @@
             <div class="multiverse-hud-top" style="justify-content:flex-start;">
               <span class="multiverse-hud-chip" id="tab1-model-chip">
                 <span class="status-dot-pulse"></span>
-                <span>YuNet &amp; MediaPipe EAR</span>
+                <span>YuNet &amp; MediaPipe</span>
               </span>
             </div>
             <span id="hud-backbone-status" style="display:none;"></span>
@@ -185,7 +187,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div class="step-badge" id="step-overlay-badge"
                 style="font-size:0.75rem; font-weight:700; color:var(--primary); font-family:var(--font-sans);">
-                Bước 1/3: Quét khuôn mặt & tư thế (5s)
+                Bước 1/3: Quét khuôn mặt và tư thế - 5 giây
               </div>
               <button type="button" id="btn-cancel-assessment-action" class="btn btn-outline"
                 style="padding:0.35rem 0.75rem; font-size:0.75rem; color:var(--accent-danger); border-color:rgba(239,68,68,0.4);">
@@ -232,20 +234,22 @@
             <div
               style="display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.70rem; color:#94A3B8;">
               <span id="step-overlay-timer-label">Còn 5 giây...</span>
-              <span id="step-face-tracking-status" style="color:#059669; font-weight:600;">Đang theo dõi khuôn mặt</span>
+              <span id="step-face-tracking-status" style="color:#059669; font-weight:600;">Đang theo dõi khuôn
+                mặt</span>
             </div>
           </div>
 
           <!-- Quick Test Presets (Instant Simulation) -->
           <div
             style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; background:var(--bg-card-subtle); padding:0.55rem 0.85rem; border-radius:var(--radius-xs); border:1px solid var(--border-subtle);">
-            <span class="cell-label" style="font-size:0.75rem; font-weight:600;">Mô phỏng cảm xúc:</span>
+            <span class="cell-label" style="font-size:0.75rem; font-weight:600;">Kịch bản thử nghiệm nhanh:</span>
             <button class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.75rem;"
               onclick="window.clinicalStation.testManualEmotion('HAPPY / EQUILIBRIUM', 0.75, 0.40)">Cười tươi</button>
             <button class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.75rem;"
               onclick="window.clinicalStation.testManualEmotion('SAD / DEPRESSIVE', -0.55, -0.30)">Mệt mỏi</button>
             <button class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.75rem;"
-              onclick="window.clinicalStation.testManualEmotion('ANGRY / HIGH AROUSAL', -0.45, 0.75)">Căng thẳng</button>
+              onclick="window.clinicalStation.testManualEmotion('ANGRY / HIGH AROUSAL', -0.45, 0.75)">Căng
+              thẳng</button>
             <button class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.75rem;"
               onclick="window.clinicalStation.testManualEmotion('NEUTRAL / CALM', 0.05, -0.05)">Điềm tĩnh</button>
           </div>
@@ -254,15 +258,15 @@
           <div class="telemetry-row">
             <div class="telemetry-cell">
               <div class="cell-label">Trạng thái tâm lý</div>
-              <div class="cell-value" id="metric-emotion-class" style="font-size: 0.96rem;">NEUTRAL / CALM</div>
+              <div class="cell-value" id="metric-emotion-class" style="font-size: 0.96rem;">Điềm tĩnh, cân bằng</div>
             </div>
             <div class="telemetry-cell">
               <div class="cell-label">Độ tin cậy mô hình</div>
               <div class="cell-value" id="metric-confidence">86.4%</div>
             </div>
             <div class="telemetry-cell">
-              <div class="cell-label">Chỉ số Valence / Arousal</div>
-              <div class="cell-value" id="metric-va-values" style="font-size: 0.88rem;">VAL: +0.05 | AROU: +0.02</div>
+              <div class="cell-label">Sắc thái cảm xúc &amp; Năng lượng</div>
+              <div class="cell-value" id="metric-va-values" style="font-size: 0.88rem;">Cân bằng • Thư giãn</div>
             </div>
           </div>
 
@@ -271,14 +275,14 @@
             <div class="cell-label" style="font-weight:600;">Độ hài hòa các kênh sinh trắc:</div>
             <div class="signals-grid">
               <div class="signal-card">
-                <span class="signal-title">Khuôn mặt (Face)</span>
+                <span class="signal-title">Cơ mặt</span>
                 <span class="signal-status" id="face-status-text">Thư giãn tự nhiên</span>
                 <div class="channel-bar-bg">
                   <div id="face-pct-bar" class="channel-bar-fill" style="width: 85%;"></div>
                 </div>
               </div>
               <div class="signal-card">
-                <span class="signal-title">Tư thế cổ &amp; vai</span>
+                <span class="signal-title">Tư thế cổ và vai</span>
                 <span class="signal-status" id="body-status-text">Thẳng trục chuẩn</span>
                 <div class="channel-bar-bg">
                   <div id="body-pct-bar" class="channel-bar-fill" style="width: 90%;"></div>
@@ -292,7 +296,7 @@
                 </div>
               </div>
               <div class="signal-card">
-                <span class="signal-title">Ngữ nghĩa lời nói</span>
+                <span class="signal-title">Nội dung lời nói</span>
                 <span class="signal-status" id="text-status-text">Tích cực, cởi mở</span>
                 <div class="channel-bar-bg">
                   <div id="text-pct-bar" class="channel-bar-fill" style="width: 88%;"></div>
@@ -303,26 +307,31 @@
 
           <!-- Incongruence / Sarcasm Alert Banner -->
           <div id="incongruence-alert-box" class="incongruence-alert">
-            <strong>Cảnh báo mâu thuẫn cảm xúc (Incongruence)</strong><br>
-            Hệ thống phát hiện mâu thuẫn giữa lời nói và phản xạ nét mặt/giọng nói.
+            <strong>Cảnh báo mâu thuẫn cảm xúc</strong><br>
+            Hệ thống phát hiện mâu thuẫn giữa lời nói và phản xạ nét mặt hoặc giọng nói.
           </div>
 
           <!-- Vocal & Multimodal Elicitation Module -->
           <div class="vocal-box">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="cell-label" style="font-weight:600;">Đánh giá đồng pha giọng nói - nét mặt (Vocal Elicitation)</span>
+              <span class="cell-label" style="font-weight:600;">Đánh giá đồng pha giọng nói và nét mặt</span>
               <button class="btn btn-outline" id="vocal-gen-prompt-btn"
                 style="padding:0.3rem 0.65rem; font-size:0.75rem;">
                 Đổi câu gợi ý
               </button>
             </div>
 
+            <div
+              style="display:flex; gap:0.4rem; font-size:0.74rem; color:var(--text-muted); margin:0.25rem 0 0.1rem 0;">
+              <span>1. Đọc câu mẫu</span> <span>•</span> <span>2. Bấm ghi âm 5 giây</span> <span>•</span> <span>3. Nhận
+                kết quả</span>
+            </div>
+
             <div class="prompt-quote" id="vocal-prompt-text">
               "Tôi cảm thấy hoàn toàn bình an và làm chủ được năng lượng tinh thần hôm nay."
             </div>
-            <div style="font-size:0.78rem; color:var(--text-secondary);"
-              id="vocal-prompt-rationale">
-              Chỉ định lâm sàng: Đánh giá sự đồng pha giữa khẳng định tích cực và trương lực cơ mặt
+            <div style="font-size:0.78rem; color:var(--text-secondary);" id="vocal-prompt-rationale">
+              Mục tiêu kiểm tra: Đối chiếu sự nhất quán giữa lời khẳng định và trương lực cơ mặt
             </div>
 
             <div class="vocal-actions">
@@ -352,16 +361,17 @@
           <!-- Acoustic Therapy Engine Card -->
           <div class="glass-panel monitor-card">
             <div class="card-header-row">
-              <span class="card-title">Hệ thống âm thanh trị liệu (Acoustic Engine)</span>
-              <span class="badge badge-clinical">Web Audio API</span>
+              <span class="card-title">Hệ thống âm thanh trị liệu</span>
+              <span class="badge badge-neutral">Xử lý nội bộ</span>
             </div>
 
             <div class="therapy-controls">
               <!-- Ambient Switch -->
               <div class="therapy-toggle-card">
                 <div>
-                  <div style="font-size:0.84rem; font-weight:600; color:var(--text-primary);">Nhạc nền sóng não Alpha 10Hz</div>
-                  <div style="font-size:0.75rem; color:var(--text-secondary);">Binaural Drone 432Hz thư giãn thần kinh</div>
+                  <div style="font-size:0.84rem; font-weight:600; color:var(--text-primary);">Nhạc nền sóng não Alpha
+                    10Hz</div>
+                  <div style="font-size:0.75rem; color:var(--text-secondary);">Sóng thư giãn thần kinh 432Hz</div>
                 </div>
                 <label class="switch">
                   <input type="checkbox" id="ambient-audio-switch">
@@ -382,6 +392,15 @@
               </div>
             </div>
 
+            <!-- 4-7-8 Breathing Pacer Header & Guidance -->
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; margin-top:0.85rem; margin-bottom:0.35rem; padding-top:0.75rem; border-top:1px solid var(--border-subtle);">
+              <span style="font-size:0.82rem; font-weight:700; color:var(--text-primary);">Điều hòa nhịp thở
+                4-7-8</span>
+              <span style="font-size:0.74rem; color:var(--text-muted); font-weight:500;">Hít vào 4s • Giữ 7s • Thở ra
+                8s</span>
+            </div>
+
             <!-- 4-7-8 Breathing Pacer -->
             <div class="breathing-box">
               <div class="breath-circle-container">
@@ -390,7 +409,7 @@
                   <span class="breath-timer-text" id="breath-timer-text">04</span>
                 </div>
               </div>
-              <div class="breath-phase-badge" id="breath-phase-badge">Hít vào sâu qua mũi (4s)</div>
+              <div class="breath-phase-badge" id="breath-phase-badge">Hít vào sâu qua mũi</div>
             </div>
           </div>
 
@@ -406,7 +425,7 @@
             <div class="chat-container">
               <div class="chat-history" id="chat-messages-container">
                 <div class="chat-bubble chat-bubble-ai" style="font-size:0.85rem; line-height:1.55;">
-                  Chào bạn. Tôi là Trợ lý Tham vấn Tâm lý Lâm sàng dựa trên Liệu pháp Nhận thức Hành vi (CBT).
+                  Chào bạn. Tôi là Trợ lý Tham vấn Tâm lý Lâm sàng dựa trên Liệu pháp Nhận thức Hành vi.
                   Hệ thống cảm biến sinh trắc học đang theo dõi liên tục mức độ tiêu hao năng lượng tinh thần, trương
                   lực cơ mặt và giọng nói của bạn để hỗ trợ điều hòa thần kinh theo thời gian thực.
                   Hôm nay bạn đang trải nghiệm những cảm xúc hoặc áp lực cụ thể nào?
@@ -415,15 +434,15 @@
 
               <div class="cbt-suggestion-chips" id="cbt-suggestion-chips">
                 <button type="button" class="chip-btn" data-query="Trầm cảm là gì và cách vượt qua?">Trầm Cảm</button>
-                <button type="button" class="chip-btn" data-query="Tôi bị mất ngủ cả tuần nay, làm sao để ngủ ngon?">Mất Ngủ</button>
+                <button type="button" class="chip-btn" data-query="Tôi bị mất ngủ cả tuần nay, làm sao để ngủ ngon?">Mất
+                  Ngủ</button>
+                <button type="button" class="chip-btn" data-query="Làm sao chữa suy nghĩ quá mức?">Overthinking</button>
                 <button type="button" class="chip-btn"
-                  data-query="Làm sao chữa chứng overthinking hay suy nghĩ quá mức?">Overthinking</button>
+                  data-query="Cơn hoảng loạn lúc tim đập nhanh thì xử lý thế nào?">Hoảng Loạn</button>
                 <button type="button" class="chip-btn"
-                  data-query="Cơn hoảng loạn (Panic Attack) lúc tim đập thình thịch thì xử lý thế nào?">Hoảng Loạn</button>
-                <button type="button" class="chip-btn"
-                  data-query="Tôi đang bị kiệt sức nghề nghiệp (Burnout), tôi cần làm gì?">Kiệt Sức</button>
-                <button type="button" class="chip-btn"
-                  data-query="Rối loạn lo âu lan tỏa (GAD) có chữa khỏi được không?">Lo Âu</button>
+                  data-query="Tôi đang bị kiệt sức nghề nghiệp, tôi cần làm gì?">Kiệt Sức</button>
+                <button type="button" class="chip-btn" data-query="Rối loạn lo âu lan tỏa có chữa khỏi được không?">Lo
+                  Âu</button>
                 <button type="button" class="chip-btn chip-teach"
                   data-query="Dạy bác sĩ: [Tên bệnh] : [Phác đồ điều trị của bạn]">+ Thêm phác đồ CBT</button>
               </div>
@@ -476,8 +495,10 @@
             </div>
 
             <div style="margin-top:0.75rem;">
-              <h2 id="game-target-title" style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Nụ cười tự nhiên (Duchenne Smile)</h2>
-              <p id="game-target-desc" style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom:0.5rem; line-height: 1.5;">
+              <h2 id="game-target-title" style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Nụ cười
+                tự nhiên</h2>
+              <p id="game-target-desc"
+                style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom:0.5rem; line-height: 1.5;">
                 Nâng khóe miệng, tạo nếp nhăn đuôi mắt nhẹ, thả lỏng cơ trán.</p>
 
               <div class="cell-label" style="margin-bottom:0.35rem; font-size: 0.80rem;">Nhóm cơ cần vận động:</div>
@@ -491,7 +512,7 @@
           <!-- Right Viewport: User Live Webcam & 3s Countdown Overlay -->
           <div class="glass-panel monitor-card">
             <div class="card-header-row">
-              <span class="card-title">Camera của bạn (Trực tiếp)</span>
+              <span class="card-title">Camera trực tiếp</span>
               <span class="badge badge-success" id="game-cam-status-badge">Camera trực tiếp</span>
             </div>
 
@@ -523,7 +544,8 @@
               <!-- 3-Second Overlay directly over user camera -->
               <div id="game-countdown-overlay" class="countdown-overlay">
                 <div style="text-align:center;">
-                  <div class="cell-label" style="color:#FFFFFF; font-size:0.85rem; margin-bottom:0.5rem;">Chuẩn bị bắt chước biểu cảm:</div>
+                  <div class="cell-label" style="color:#FFFFFF; font-size:0.85rem; margin-bottom:0.5rem;">Chuẩn bị bắt
+                    chước biểu cảm:</div>
                   <div id="game-countdown-digits" class="countdown-digits">03</div>
                 </div>
               </div>
@@ -589,7 +611,7 @@
                   <circle cx="12" cy="12" r="10" />
                   <polygon points="10 8 16 12 10 16 10 8" />
                 </svg>
-                Bắt đầu thử thách (3s)
+                Bắt đầu thử thách - 3 giây
               </button>
             </div>
           </div>
@@ -609,7 +631,7 @@
           <div style="display:grid; grid-template-columns: 260px 1fr; gap:1.25rem; align-items:center;">
             <div
               style="background:var(--bg-card-subtle); padding:1rem; border-radius:var(--radius-xs); border:1px solid var(--border-subtle); text-align:center;">
-              <div class="cell-label">Độ trùng khớp (Cosine)</div>
+              <div class="cell-label">Độ trùng khớp cơ mặt</div>
               <div id="game-score-value"
                 style="font-family:var(--font-mono); font-size:2.8rem; font-weight:800; color:var(--text-primary); margin:0.2rem 0;">
                 0.0%
@@ -623,7 +645,7 @@
               <div class="cell-label">Đánh giá từng nhóm cơ:</div>
               <div id="game-muscle-feedback-list" style="display:flex; flex-direction:column; gap:0.4rem;">
                 <div class="telemetry-cell" style="padding:0.5rem 0.75rem;">
-                  <span class="cell-label">Chưa có dữ liệu • Nhấn Bắt đầu thử thách (3s)</span>
+                  <span class="cell-label">Chưa có dữ liệu • Nhấn Bắt đầu thử thách</span>
                 </div>
               </div>
               <div
@@ -650,19 +672,27 @@
         <div class="hero-left">
           <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem; flex-wrap:wrap;">
             <span class="hero-badge">Sinh trắc học &amp; Động học hành vi</span>
-            <span style="font-family:var(--font-mono); font-size:0.74rem; color:var(--text-secondary); font-weight:600;">Thị giác máy tính &amp; Đo từ xa</span>
+            <span
+              style="font-family:var(--font-mono); font-size:0.74rem; color:var(--text-secondary); font-weight:600;">Thị
+              giác máy tính &amp; Đo từ xa</span>
             <span class="badge badge-success" style="font-size:0.72rem;">Giám sát trực tiếp</span>
           </div>
-          <h2 class="hero-title" style="font-size:1.12rem; font-weight:700; margin-bottom:0.25rem;">Giám sát động học hành vi &amp; đánh giá giọng nói</h2>
+          <h2 class="hero-title" style="font-size:1.12rem; font-weight:700; margin-bottom:0.25rem;">Giám sát động học
+            hành vi &amp; đánh giá giọng nói</h2>
           <p class="hero-desc" style="font-size:0.84rem; line-height:1.55; margin:0; color:var(--text-secondary);">
-            Hệ thống phân tích thị giác máy tính lâm sàng kết hợp trích xuất nhịp chớp mắt MediaPipe EAR 6 điểm, đo phương sai đỉnh mũi YuNet nhận diện bồn chồn và quy trình đánh giá giọng nói chuẩn hóa 15 giây.
+            Hệ thống theo dõi thị giác máy tính kết hợp đo nhịp chớp mắt, đánh giá độ ổn định tư thế đầu và phân tích âm
+            phổ giọng nói 15 giây.
           </p>
         </div>
         <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
           <button type="button" class="btn btn-outline" id="btn-open-ai-eval"
             style="font-size:0.78rem; padding:0.45rem 0.85rem; display:inline-flex; align-items:center; gap:0.35rem;"
             title="Xem báo cáo chi tiết về Accuracy, Recall, Confusion Matrix và các giới hạn kỹ thuật của hệ thống">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
             <span>Báo cáo AI &amp; Recall</span>
           </button>
         </div>
@@ -716,7 +746,7 @@
             <div class="multiverse-hud-top">
               <span class="multiverse-hud-chip" id="multiverse-hud-backbone-status">
                 <span class="status-dot-pulse"></span>
-                <span>YuNet &amp; MediaPipe EAR</span>
+                <span>YuNet &amp; MediaPipe</span>
               </span>
               <span class="multiverse-hud-chip" id="multiverse-expression-chip"
                 style="background:rgba(255,255,255,0.95); color:var(--accent-clinical); border-color:var(--border-subtle);">
@@ -739,7 +769,8 @@
                 style="font-size:0.76rem; padding:0.35rem 0.85rem; box-shadow:0 4px 14px rgba(0,0,0,0.6); backdrop-filter:blur(10px); display:inline-flex; align-items:center; gap:6px;">
                 <span id="multiverse-live-hud-dot"
                   style="width:7px; height:7px; border-radius:50%; background:#ef4444; display:inline-block;"></span>
-                <span id="multiverse-live-hud-label">Chưa phát hiện khuôn mặt • Vui lòng hướng vào giữa khung ngắm</span>
+                <span id="multiverse-live-hud-label">Chưa phát hiện khuôn mặt • Vui lòng hướng vào giữa khung
+                  ngắm</span>
               </span>
             </div>
 
@@ -764,18 +795,19 @@
             <div class="session-reading-header">
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2.2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
                 </svg>
                 <span class="session-reading-title">
                   Vui lòng đọc to đoạn văn sau để hệ thống ghi nhận giọng nói và ánh nhìn:
                 </span>
               </div>
-              <button type="button" class="btn btn-outline" id="session-shuffle-script-btn" style="padding:0.35rem 0.8rem; font-size:0.78rem; font-weight:600; display:inline-flex; align-items:center; gap:0.35rem;">
+              <button type="button" class="btn btn-outline" id="session-shuffle-script-btn"
+                style="padding:0.35rem 0.8rem; font-size:0.78rem; font-weight:600; display:inline-flex; align-items:center; gap:0.35rem;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
                 </svg>
                 <span>Đổi văn bản khác</span>
               </button>
@@ -784,7 +816,8 @@
             <!-- Reading Script Box -->
             <div class="session-script-card">
               <p class="session-script-text" id="session-script-text">
-                "Hôm nay là một ngày tuyệt vời để tôi tập trung làm việc và chăm sóc sức khỏe bản thân. Tôi luôn giữ tinh thần thoải mái, lắng nghe cơ thể và duy trì sự cân bằng trong từng nhịp thở nhẹ nhàng."
+                "Hôm nay là một ngày tuyệt vời để tôi tập trung làm việc và chăm sóc sức khỏe bản thân. Tôi luôn giữ
+                tinh thần thoải mái, lắng nghe cơ thể và duy trì sự cân bằng trong từng nhịp thở nhẹ nhàng."
               </p>
             </div>
 
@@ -797,7 +830,9 @@
               <span id="tab3-vocal-card-duration"></span>
               <span id="tab3-vocal-card-insight"></span>
               <span id="tab3-vocal-status-text"></span>
-              <div id="tab3-vocal-live-vu-container"><div id="tab3-vocal-live-vu-bar"></div><span id="tab3-vocal-live-vu-text"></span></div>
+              <div id="tab3-vocal-live-vu-container">
+                <div id="tab3-vocal-live-vu-bar"></div><span id="tab3-vocal-live-vu-text"></span>
+              </div>
               <button id="tab3-vocal-record-btn"></button>
               <button id="tab3-vocal-gen-prompt-btn"></button>
               <div id="tab3-vocal-report-result"></div>
@@ -816,17 +851,19 @@
                 <span class="card-title" style="font-weight:700;">Bộ điều khiển đánh giá 15 giây</span>
                 <span class="badge badge-clinical" id="session-status-badge">Sẵn sàng</span>
               </div>
-              <span class="badge badge-neutral" style="font-family:var(--font-mono); font-size:0.70rem; color:var(--accent-clinical);">
+              <span class="badge badge-neutral"
+                style="font-family:var(--font-mono); font-size:0.70rem; color:var(--accent-clinical);">
                 Giao thức phiên
               </span>
             </div>
 
             <!-- Face Detection Live Status Alert in Controller -->
-            <div id="controller-face-alert" style="display:none; padding:0.55rem 0.85rem; border-radius:var(--radius-xs); background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); color:#DC2626; font-size:0.78rem; font-weight:600; align-items:center; gap:0.5rem; margin-bottom:0.6rem;">
+            <div id="controller-face-alert"
+              style="display:none; padding:0.55rem 0.85rem; border-radius:var(--radius-xs); background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); color:#DC2626; font-size:0.78rem; font-weight:600; align-items:center; gap:0.5rem; margin-bottom:0.6rem;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <span id="controller-face-alert-text">Chưa phát hiện khuôn mặt • Vui lòng hướng vào giữa khung ngắm</span>
             </div>
@@ -837,7 +874,7 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3" />
                 </svg>
-                <span id="btn-start-session-label">Bắt đầu kiểm tra (15s)</span>
+                <span id="btn-start-session-label">Bắt đầu kiểm tra - 15 giây</span>
               </button>
 
               <!-- Countdown Progress Display (Visible during 15s session) -->
@@ -855,20 +892,21 @@
               </div>
             </div>
 
-            <!-- Live Mic VU Meter (animated volume bar via browser Web Audio API) -->
+            <!-- Live Mic VU Meter -->
             <div class="controller-mic-vu-box" id="controller-mic-vu-box">
               <div class="controller-mic-header">
                 <div style="display:flex; align-items:center; gap:0.4rem;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2.2">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
                   </svg>
-                  <span class="controller-mic-label">Cường độ âm thanh (Mic):</span>
+                  <span class="controller-mic-label">Cường độ âm thanh thu âm:</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:0.45rem;">
-                  <span id="controller-mic-status-badge" class="badge badge-neutral" style="font-size:0.68rem; padding:2px 6px;">Chờ bắt đầu</span>
+                  <span id="controller-mic-status-badge" class="badge badge-neutral"
+                    style="font-size:0.68rem; padding:2px 6px;">Chờ bắt đầu</span>
                   <span id="controller-mic-vu-val" class="controller-mic-val">0%</span>
                 </div>
               </div>
@@ -879,11 +917,13 @@
           </div>
 
           <!-- 2. Real-time / Summary Result Card -->
-          <div class="glass-panel monitor-card session-result-card" id="session-result-card" style="display:flex; flex-direction:column; gap:0.75rem;">
+          <div class="glass-panel monitor-card session-result-card" id="session-result-card"
+            style="display:flex; flex-direction:column; gap:0.75rem;">
             <div class="card-header-row" style="flex-wrap:wrap; gap:0.4rem; margin-bottom:0.15rem;">
               <div class="card-title-group" style="display:flex; align-items:center; gap:0.55rem;">
                 <span class="card-title" style="font-weight:700;">Kết quả sinh trắc &amp; hành vi</span>
-                <span class="badge badge-neutral" id="session-mode-badge" style="font-size:0.70rem;">Giám sát trực tiếp</span>
+                <span class="badge badge-neutral" id="session-mode-badge" style="font-size:0.70rem;">Giám sát trực
+                  tiếp</span>
               </div>
               <span class="badge badge-neutral" style="font-family:var(--font-mono); font-size:0.70rem; color:#10B981;">
                 Chẩn đoán
@@ -893,49 +933,61 @@
             <!-- Overall Status / Diagnostic Summary Banner -->
             <div class="session-verdict-banner verdict-stable" id="session-verdict-banner">
               <div class="session-verdict-icon" id="session-verdict-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
               </div>
               <div class="session-verdict-body">
                 <div class="session-verdict-title" id="session-verdict-title">Hệ thống đang theo dõi trực tiếp</div>
                 <div class="session-verdict-desc" id="session-verdict-desc">
-                  Nhấn "Bắt đầu kiểm tra (15s)" để ghi nhận tần suất chớp mắt, tư thế đầu và phân tích giọng nói.
+                  Nhấn "Bắt đầu kiểm tra" để ghi nhận tần suất chớp mắt, tư thế đầu và phân tích giọng nói.
                 </div>
               </div>
             </div>
 
             <!-- 3 Summary Badges (Mắt, Đầu, Giọng nói) -->
             <div class="session-badges-grid">
-              <!-- 1. Mắt (Blink) -->
+              <!-- 1. Mắt -->
               <div class="session-badge-card">
                 <div class="session-badge-header">
                   <span class="session-badge-icon">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
                   </span>
-                  <span class="session-badge-name">Mắt (Blink)</span>
+                  <span class="session-badge-name">Nhịp chớp mắt</span>
                 </div>
                 <div class="session-badge-metric" id="session-res-blink-metric">-- Lần/phút</div>
                 <div class="session-badge-state badge badge-success" id="session-res-blink-badge">Mắt mở</div>
               </div>
 
-              <!-- 2. Đầu (Head Stability) -->
+              <!-- 2. Đầu -->
               <div class="session-badge-card">
                 <div class="session-badge-header">
                   <span class="session-badge-icon">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><path d="M12 11v8"/><path d="M8 14h8"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="5" r="3" />
+                      <path d="M12 11v8" />
+                      <path d="M8 14h8" />
+                    </svg>
                   </span>
-                  <span class="session-badge-name">Đầu (Head Stability)</span>
+                  <span class="session-badge-name">Tư thế đầu</span>
                 </div>
                 <div class="session-badge-metric" id="session-res-head-metric">Vững trục cổ</div>
                 <div class="session-badge-state badge badge-success" id="session-res-head-badge">Điềm tĩnh</div>
               </div>
 
-              <!-- 3. Giọng nói (Vocal Emotion) -->
+              <!-- 3. Giọng nói -->
               <div class="session-badge-card">
                 <div class="session-badge-header">
                   <span class="session-badge-icon">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    </svg>
                   </span>
-                  <span class="session-badge-name">Giọng nói (Vocal Emotion)</span>
+                  <span class="session-badge-name">Sắc thái giọng nói</span>
                 </div>
                 <div class="session-badge-metric" id="session-res-voice-metric">Chờ kiểm tra</div>
                 <div class="session-badge-state badge badge-neutral" id="session-res-voice-badge">Chưa đo</div>
@@ -944,9 +996,13 @@
 
             <!-- Action Bar to Retest (Visible after session) -->
             <div id="session-retest-row" style="display:none; justify-content:flex-end; margin-top:0.15rem;">
-              <button type="button" class="btn btn-outline" id="session-retest-btn" style="font-size:0.78rem; padding:0.4rem 0.9rem; display:inline-flex; align-items:center; gap:0.35rem;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                <span>Bắt đầu lượt kiểm tra mới (15s)</span>
+              <button type="button" class="btn btn-outline" id="session-retest-btn"
+                style="font-size:0.78rem; padding:0.4rem 0.9rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+                <span>Bắt đầu lượt kiểm tra mới</span>
               </button>
             </div>
 
@@ -960,20 +1016,22 @@
                 <!-- Dual Metrics Display: Blink Rate & Restlessness/Fidget -->
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem;">
 
-                  <!-- 1. Tần Suất Chớp Mắt (MediaPipe 6-point EAR) -->
+                  <!-- 1. Tần Suất Chớp Mắt -->
                   <div
                     style="background:var(--bg-card-subtle); padding:0.8rem; border-radius:var(--radius-xs); border:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:0.3rem;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <span class="cell-label" style="font-size:0.75rem; font-weight:700; color:#0284C7;">Tần suất chớp mắt</span>
+                      <span class="cell-label" style="font-size:0.75rem; font-weight:700; color:#0284C7;">Tần suất chớp
+                        mắt</span>
                       <span class="badge" id="metric-blink-badge"
-                        style="background:rgba(2,132,199,0.12); color:#0284C7; font-size:0.68rem; padding:2px 6px;">MediaPipe EAR</span>
+                        style="background:rgba(2,132,199,0.12); color:#0284C7; font-size:0.68rem; padding:2px 6px;">Thị
+                        giác máy tính</span>
                     </div>
 
                     <div style="display:flex; align-items:baseline; gap:0.3rem; margin:0.1rem 0;">
                       <span id="metric-blink-bpm"
                         style="font-family:var(--font-mono); font-size:1.45rem; font-weight:800; color:var(--text-primary);">--</span>
                       <span
-                        style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); font-weight:600;">BPM</span>
+                        style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); font-weight:600;">lần/phút</span>
                       <span id="metric-blink-state" class="badge badge-success"
                         style="margin-left:auto; font-size:0.68rem;">Mắt mở</span>
                     </div>
@@ -982,8 +1040,9 @@
                     <div>
                       <div
                         style="display:flex; justify-content:space-between; font-size:0.70rem; font-family:var(--font-mono); color:var(--text-muted); margin-bottom:0.15rem;">
-                        <span>Tỷ số EAR: <strong id="metric-ear-val" style="color:var(--text-primary);">0.32</strong></span>
-                        <span>Ngưỡng: 0.22</span>
+                        <span>Độ mở mi mắt: <strong id="metric-ear-val"
+                            style="color:var(--text-primary);">0.32</strong></span>
+                        <span>Ngưỡng nhắm: 0.22</span>
                       </div>
                       <div class="channel-bar-bg" style="height:5px;">
                         <div id="metric-ear-bar" class="channel-bar-fill" style="width: 70%; background:#0284C7;"></div>
@@ -998,16 +1057,19 @@
                     </div>
                   </div>
 
-                  <!-- 2. Chỉ Số Bồn Chồn & Tư Thế Đầu 3D (YuNet & solvePnP) -->
+                  <!-- 2. Chỉ Số Bồn Chồn & Tư Thế Đầu -->
                   <div
                     style="background:var(--bg-card-subtle); padding:0.8rem; border-radius:var(--radius-xs); border:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:0.3rem;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <span class="cell-label" style="font-size:0.75rem; font-weight:700; color:#10B981;">Chỉ số bồn chồn</span>
+                      <span class="cell-label" style="font-size:0.75rem; font-weight:700; color:#10B981;">Chỉ số bồn
+                        chồn</span>
                       <span class="badge" id="metric-fidget-badge"
-                        style="background:rgba(16,185,129,0.12); color:#10B981; font-size:0.68rem; padding:2px 6px;">Đỉnh mũi &amp; Pose</span>
+                        style="background:rgba(16,185,129,0.12); color:#10B981; font-size:0.68rem; padding:2px 6px;">Độ
+                        ổn định tư thế</span>
                     </div>
 
-                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.25rem; margin:0.1rem 0;">
+                    <div
+                      style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.25rem; margin:0.1rem 0;">
                       <div style="display:flex; align-items:baseline; gap:0.25rem;">
                         <span id="metric-fidget-score"
                           style="font-family:var(--font-mono); font-size:1.45rem; font-weight:800; color:var(--text-primary);">0.0</span>
@@ -1022,12 +1084,13 @@
                     <div>
                       <div
                         style="display:flex; justify-content:space-between; font-size:0.70rem; font-family:var(--font-mono); color:var(--text-muted); margin-bottom:0.15rem;">
-                        <span>Phương sai: <strong id="metric-nose-variance"
-                            style="color:var(--text-primary);">0.0</strong> px²</span>
+                        <span>Mức dao động: <strong id="metric-nose-variance"
+                            style="color:var(--text-primary);">0.0</strong></span>
                         <span id="metric-posture-state" style="color:#10B981; font-weight:700;">Vững cổ</span>
                       </div>
                       <div class="channel-bar-bg" style="height:5px;">
-                        <div id="metric-fidget-bar" class="channel-bar-fill" style="width: 8%; background:#10B981;"></div>
+                        <div id="metric-fidget-bar" class="channel-bar-fill" style="width: 8%; background:#10B981;">
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1054,45 +1117,59 @@
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.55rem;">
               <!-- Item 1: Posture -->
-              <div class="prescription-item" style="border-left-color:#F59E0B; background:rgba(245,158,11,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
+              <div class="prescription-item"
+                style="border-left-color:#F59E0B; background:rgba(245,158,11,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span class="prescription-title" style="color:#D97706; font-size:0.75rem; font-weight:700;">Chin Tuck (Chỉnh cổ)</span>
+                  <span class="prescription-title" style="color:#D97706; font-size:0.75rem; font-weight:700;">Chin Tuck
+                    (Chỉnh cổ)</span>
                   <span class="badge badge-warning" style="font-size:0.62rem; padding:1px 4px;">Ưu tiên 1</span>
                 </div>
-                <div class="prescription-desc" style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
+                <div class="prescription-desc"
+                  style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
                   Thu cằm ngang 3 giây. Căn chỉnh đốt sống C1-C7 về trục tự nhiên, giải phóng cơ thang.
                 </div>
               </div>
 
               <!-- Item 2: Autonomic Paced Breathing -->
-              <div class="prescription-item" style="border-left-color:#0284C7; background:rgba(2,132,199,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
+              <div class="prescription-item"
+                style="border-left-color:#0284C7; background:rgba(2,132,199,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span class="prescription-title" style="color:#0284C7; font-size:0.75rem; font-weight:700;">Nhịp thở 4-7-8</span>
-                  <span class="badge" style="background:rgba(2,132,199,0.12); color:#0284C7; font-size:0.62rem; padding:1px 4px;">Ưu tiên 2</span>
+                  <span class="prescription-title" style="color:#0284C7; font-size:0.75rem; font-weight:700;">Nhịp thở
+                    4-7-8</span>
+                  <span class="badge"
+                    style="background:rgba(2,132,199,0.12); color:#0284C7; font-size:0.62rem; padding:1px 4px;">Ưu tiên
+                    2</span>
                 </div>
-                <div class="prescription-desc" style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
+                <div class="prescription-desc"
+                  style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
                   Hít sâu 4s, nín 7s, thở ra 8s (3 chu kỳ). Kích thích thần kinh phó giao cảm, hạ huyết áp.
                 </div>
               </div>
 
               <!-- Item 3: Eye Care -->
-              <div class="prescription-item" style="border-left-color:#10B981; background:rgba(16,185,129,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
+              <div class="prescription-item"
+                style="border-left-color:#10B981; background:rgba(16,185,129,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span class="prescription-title" style="color:#059669; font-size:0.75rem; font-weight:700;">Quy tắc 20-20-20</span>
+                  <span class="prescription-title" style="color:#059669; font-size:0.75rem; font-weight:700;">Quy tắc
+                    20-20-20</span>
                   <span class="badge badge-neutral" style="font-size:0.62rem; padding:1px 4px;">Ưu tiên 3</span>
                 </div>
-                <div class="prescription-desc" style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
+                <div class="prescription-desc"
+                  style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
                   Mỗi 20 phút nhìn màn hình, nhìn xa 6m trong 20s. Thả lỏng cơ thể mi, chống mỏi mắt.
                 </div>
               </div>
 
               <!-- Item 4: Hydration -->
-              <div class="prescription-item" style="border-left-color:#6366F1; background:rgba(99,102,241,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
+              <div class="prescription-item"
+                style="border-left-color:#6366F1; background:rgba(99,102,241,0.04); padding:0.55rem 0.7rem; gap:0.2rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span class="prescription-title" style="color:#4F46E5; font-size:0.75rem; font-weight:700;">Nước ấm 200ml</span>
+                  <span class="prescription-title" style="color:#4F46E5; font-size:0.75rem; font-weight:700;">Nước ấm
+                    200ml</span>
                   <span class="badge badge-neutral" style="font-size:0.62rem; padding:1px 4px;">Ưu tiên 4</span>
                 </div>
-                <div class="prescription-desc" style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
+                <div class="prescription-desc"
+                  style="font-size:0.74rem; line-height:1.45; color:var(--text-secondary);">
                   Uống từng ngụm nhỏ nước ấm khi ngồi thẳng. Duy trì thể tích tuần hoàn, giảm khô mắt.
                 </div>
               </div>
@@ -1118,7 +1195,8 @@
       <div class="modal-header">
         <div>
           <span class="badge badge-clinical">Kết quả đánh giá lâm sàng toàn diện</span>
-          <h2 style="font-size:1.18rem; font-weight:700; margin-top:0.35rem; color:var(--text-primary);">Báo cáo sức khỏe tâm thần &amp; sinh trắc học</h2>
+          <h2 style="font-size:1.18rem; font-weight:700; margin-top:0.35rem; color:var(--text-primary);">Báo cáo sức
+            khỏe tâm thần &amp; sinh trắc học</h2>
         </div>
         <button class="btn btn-outline" id="close-assessment-modal-btn"
           style="padding:0.4rem 0.85rem; font-size:0.78rem;">Đóng</button>
@@ -1168,7 +1246,8 @@
               <img id="modal-face-snapshot-img" src="" alt="Ảnh chụp thực tế"
                 style="width:100%; height:100%; object-fit:cover; display:none; transform:scaleX(-1);">
               <span id="modal-no-face-warning"
-                style="display:none; font-size:0.75rem; color:#EF4444; font-family:var(--font-sans); text-align:center; padding:0.4rem; font-weight:600;">Chưa nhận diện được khuôn mặt</span>
+                style="display:none; font-size:0.75rem; color:#EF4444; font-family:var(--font-sans); text-align:center; padding:0.4rem; font-weight:600;">Chưa
+                nhận diện được khuôn mặt</span>
             </div>
             <span class="evidence-caption">Ảnh chụp lúc kiểm tra</span>
           </div>
@@ -1221,7 +1300,8 @@
       <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
         <span id="web-modal-icon-badge" class="badge badge-warning"
           style="font-size:0.76rem; padding:0.25rem 0.6rem;">Thông báo</span>
-        <span id="web-modal-title" style="font-weight:700; font-size:0.95rem; color:var(--text-primary);">Cảnh báo lâm sàng</span>
+        <span id="web-modal-title" style="font-weight:700; font-size:0.95rem; color:var(--text-primary);">Cảnh báo lâm
+          sàng</span>
       </div>
       <div id="web-modal-body"
         style="font-size:0.84rem; color:var(--text-secondary); line-height:1.55; margin-bottom:1.2rem; white-space:pre-line;">
@@ -1266,8 +1346,7 @@
 
       <!-- Section 1: Measured Precision & Recall Benchmark Matrix -->
       <div style="margin-bottom:1.25rem;">
-        <div
-          style="font-size:0.85rem; font-weight:700; color:#0284C7; margin-bottom:0.45rem;">
+        <div style="font-size:0.85rem; font-weight:700; color:#0284C7; margin-bottom:0.45rem;">
           1. KẾT QUẢ ĐO ĐẠC THỰC NGHIỆM: PRECISION, RECALL &amp; F1-SCORE
         </div>
         <div style="overflow-x:auto;">
@@ -1449,8 +1528,7 @@
       <!-- Section 2: Mathematical Formulations for Evaluation -->
       <div
         style="margin-bottom:1.25rem; background:#F8FAFC; border:1px solid var(--border-subtle); border-radius:var(--radius-xs); padding:0.9rem;">
-        <div
-          style="font-size:0.85rem; font-weight:700; color:#059669; margin-bottom:0.45rem;">
+        <div style="font-size:0.85rem; font-weight:700; color:#059669; margin-bottom:0.45rem;">
           2. CƠ SỞ KHOA HỌC: CÔNG THỨC TÍNH RECALL &amp; ĐÁNH GIÁ MÔ HÌNH
         </div>
         <div style="font-size:0.76rem; color:var(--text-secondary); line-height:1.6; font-family:var(--font-mono);">
@@ -1484,8 +1562,7 @@
 
       <!-- Section 3: Empirical Validation Protocol (For Thesis Defense) -->
       <div style="margin-bottom:1.25rem;">
-        <div
-          style="font-size:0.85rem; font-weight:700; color:#D97706; margin-bottom:0.45rem;">
+        <div style="font-size:0.85rem; font-weight:700; color:#D97706; margin-bottom:0.45rem;">
           3. QUY TRÌNH ĐỐI CHIẾU THỰC NGHIỆM ĐỀ XUẤT CHO ĐỒ ÁN (VALIDATION PROTOCOL)
         </div>
         <div

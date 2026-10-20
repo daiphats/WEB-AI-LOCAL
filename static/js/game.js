@@ -116,7 +116,7 @@ class MimicMatchGame {
 
     if (titleEl) titleEl.textContent = target.name;
     if (descEl) descEl.textContent = target.description;
-    
+
     // Map svg name to asset path
     let svgPath = "/static/assets/memes/exp_01_smile.svg";
     if (target.id === "EXP_02") svgPath = "/static/assets/memes/exp_02_surprise.svg";
