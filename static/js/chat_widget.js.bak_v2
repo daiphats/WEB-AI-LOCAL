@@ -1,0 +1,612 @@
+/**
+ * ============================================================================
+ * NEURO STATION - FLOATING CBT CLINICAL CHAT WIDGET
+ * ============================================================================
+ * Clean Vanilla ES6 Implementation - Zero Emojis - Isolated Namespace
+ * Provides unified cross-tab clinical counseling for Tab 1, Tab 2, and Tab 3.
+ * ============================================================================
+ */
+
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "cw_chat_history_v1";
+
+  const DEFAULT_WELCOME_MSG = {
+    sender: "bot",
+    text: "[CLINICAL STATION READY: SESSION INITIALIZED]\n" +
+      "Chào bạn. Tôi là Trợ lý Tham vấn Tâm lý Lâm sàng dựa trên Liệu pháp Nhận thức Hành vi (CBT).\n" +
+      "Hệ thống cảm biến sinh trắc học đang theo dõi liên tục mức độ tiêu hao năng lượng tinh thần, trương lực cơ mặt và giọng nói của bạn để hỗ trợ điều hòa thần kinh theo thời gian thực.\n" +
+      "Hôm nay bạn đang trải nghiệm những cảm xúc hoặc áp lực cụ thể nào?",
+    time: formatCurrentTime()
+  };
+
+  const TAB_CHIPS = {
+    "tab-monitor": [
+      { label: "Trầm Cảm", query: "Trầm cảm là gì và cách vượt qua?" },
+      { label: "Mất Ngủ", query: "Tôi bị mất ngủ cả tuần nay, làm sao để ngủ ngon?" },
+      { label: "Overthinking", query: "Làm sao chữa chứng overthinking hay suy nghĩ quá mức?" },
+      { label: "Hoảng Loạn", query: "Cơn hoảng loạn (Panic Attack) lúc tim đập thình thịch thì xử lý thế nào?" },
+      { label: "Kiệt Sức", query: "Tôi đang bị kiệt sức nghề nghiệp (Burnout), tôi cần làm gì?" },
+      { label: "Lo Âu", query: "Rối loạn lo âu lan tỏa (GAD) có chữa khỏi được không?" },
+      { label: "+ Dạy Bác Sĩ", query: "Dạy bác sĩ: [Tên bệnh] : [Phác đồ điều trị của bạn]", teach: true }
+    ],
+    "tab-mimic": [
+      { label: "Nụ Cười Duchenne", query: "Làm thế nào để cười nụ cười Duchenne chuẩn lâm sàng kích hoạt cơ gò má lớn?" },
+      { label: "Thư Giãn Quai Hàm", query: "Làm sao để thả lỏng cơ cắn (Masseter) và giải tỏa căng cứng khớp thái dương hàm?" },
+      { label: "Tập Trung Cao Độ", query: "Cách điều hòa trương lực cơ hạ mày để duy trì sự chú ý bền vững?" },
+      { label: "Thở Chúm Môi", query: "Kỹ thuật thở chúm môi giải tỏa căng thẳng hoạt động theo cơ chế nào?" },
+      { label: "+ Dạy Bác Sĩ", query: "Dạy bác sĩ: [Tên bài tập] : [Cơ chế vận động cơ mặt]", teach: true }
+    ],
+    "tab-forecast": [
+      { label: "Bài Tập Chin Tuck", query: "Hướng dẫn thực hiện bài tập thu cằm Chin Tuck để chỉnh tư thế cổ rùa?" },
+      { label: "Chỉ Số Tuổi Sinh Học", query: "Tuổi sinh học biểu cảm (Bio-Age) được tính toán dựa trên các cơ chế nào?" },
+      { label: "Hội Chứng Slump", query: "Tư thế gập cổ về trước (Forward Head Slump) gây tổn thương thần kinh ra sao?" },
+      { label: "rPPG Đo Nhịp Tim", query: "Công nghệ rPPG quang học qua camera đo nhịp tim từ biến thiên màu da như thế nào?" },
+      { label: "+ Dạy Bác Sĩ", query: "Dạy bác sĩ: [Chủ đề sinh trắc] : [Phác đồ can thiệp]", teach: true }
+    ]
+  };
+
+  const TAB_NAMES = {
+    "tab-monitor": "Tab 1: Giám Sát",
+    "tab-mimic": "Tab 2: Cơ Mặt",
+    "tab-forecast": "Tab 3: Động Học"
+  };
+
+  function formatCurrentTime() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+
+  function escapeHTML(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  class FloatingChatWidget {
+    constructor() {
+      this.isOpen = false;
+      this.unreadCount = 0;
+      this.activeTabId = "tab-monitor";
+      this.messages = [];
+      this.isSending = false;
+
+      // DOM Elements
+      this.launcher = null;
+      this.panel = null;
+      this.messagesContainer = null;
+      this.chipsContainer = null;
+      this.inputField = null;
+      this.sendBtn = null;
+      this.contextTabEl = null;
+      this.contextTelemetryEl = null;
+      this.unreadBadge = null;
+    }
+
+    init() {
+      // 1. Hide the static CBT chat card in Tab 1 (keeps DOM intact for main.js)
+      this.hideLegacyChatCard();
+
+      // 2. Load conversation history from sessionStorage
+      this.loadHistory();
+
+      // 3. Render Widget DOM
+      this.renderWidgetDOM();
+
+      // 4. Bind event listeners
+      this.bindEvents();
+
+      // 5. Detect initial tab & start telemetry synchronization
+      this.detectActiveTab();
+      this.startTelemetrySync();
+
+      // 6. Render current messages and chips
+      this.renderMessages();
+      this.renderChips();
+    }
+
+    hideLegacyChatCard() {
+      const oldContainer = document.getElementById("chat-messages-container");
+      if (oldContainer) {
+        const oldCard = oldContainer.closest(".monitor-card");
+        if (oldCard) {
+          oldCard.style.display = "none";
+        }
+      }
+    }
+
+    loadHistory() {
+      try {
+        const stored = sessionStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.messages = parsed;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("[CHAT_WIDGET] Failed to parse sessionStorage history:", e);
+      }
+      this.messages = [Object.assign({}, DEFAULT_WELCOME_MSG)];
+      this.saveHistory();
+    }
+
+    saveHistory() {
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(this.messages));
+      } catch (e) {
+        console.warn("[CHAT_WIDGET] Failed to save history to sessionStorage:", e);
+      }
+    }
+
+    renderWidgetDOM() {
+      // Create Launcher Button
+      const launcher = document.createElement("button");
+      launcher.type = "button";
+      launcher.className = "cw-launcher";
+      launcher.id = "cw-launcher-btn";
+      launcher.setAttribute("aria-label", "Mở Trợ lý Tâm lý CBT");
+      launcher.innerHTML = `
+        <span class="cw-launcher-icon cw-icon-chat">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </span>
+        <span class="cw-launcher-icon cw-icon-close">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </span>
+        <span class="cw-unread-badge" id="cw-unread-badge">0</span>
+      `;
+
+      // Create Panel
+      const panel = document.createElement("div");
+      panel.className = "cw-panel cw-closed";
+      panel.id = "cw-chat-panel";
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-label", "Hộp thoại Trợ lý Tâm lý CBT");
+      panel.innerHTML = `
+        <!-- Header -->
+        <div class="cw-header">
+          <div class="cw-header-left">
+            <div class="cw-avatar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <div class="cw-header-title-box">
+              <span class="cw-header-title">Trợ lý Tâm lý CBT</span>
+              <span class="cw-header-subtitle">
+                <span class="cw-status-dot"></span>
+                OFFLINE REASONING
+              </span>
+            </div>
+          </div>
+          <div class="cw-header-actions">
+            <button type="button" class="cw-icon-btn" id="cw-clear-btn" title="Xóa lịch sử hội thoại">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+            <button type="button" class="cw-icon-btn" id="cw-close-btn" title="Thu nhỏ (Esc)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Context Bar -->
+        <div class="cw-context-bar" id="cw-context-bar">
+          <span class="cw-context-tab" id="cw-context-tab">TAB 1: GIÁM SÁT</span>
+          <span class="cw-context-telemetry" id="cw-context-telemetry">VAL: +0.05 | AROU: +0.02</span>
+        </div>
+
+        <!-- Messages History -->
+        <div class="cw-messages" id="cw-messages"></div>
+
+        <!-- Dynamic Suggestion Chips -->
+        <div class="cw-chips" id="cw-chips"></div>
+
+        <!-- Input Row -->
+        <div class="cw-input-row">
+          <input type="text" class="cw-input" id="cw-input-field"
+            placeholder="Hỏi về bệnh lý, hoặc gõ 'Dạy bác sĩ: [Bệnh] : [Phác đồ]'..."
+            autocomplete="off">
+          <button type="button" class="cw-send-btn" id="cw-send-btn">
+            [GỬI]
+          </button>
+        </div>
+      `;
+
+      document.body.appendChild(panel);
+      document.body.appendChild(launcher);
+
+      this.launcher = launcher;
+      this.panel = panel;
+      this.messagesContainer = panel.querySelector("#cw-messages");
+      this.chipsContainer = panel.querySelector("#cw-chips");
+      this.inputField = panel.querySelector("#cw-input-field");
+      this.sendBtn = panel.querySelector("#cw-send-btn");
+      this.contextTabEl = panel.querySelector("#cw-context-tab");
+      this.contextTelemetryEl = panel.querySelector("#cw-context-telemetry");
+      this.unreadBadge = launcher.querySelector("#cw-unread-badge");
+    }
+
+    bindEvents() {
+      // Toggle panel on launcher click
+      this.launcher.addEventListener("click", () => this.togglePanel());
+
+      // Close panel on header close button
+      const closeBtn = this.panel.querySelector("#cw-close-btn");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", () => this.closePanel());
+      }
+
+      // Clear history on header trash button
+      const clearBtn = this.panel.querySelector("#cw-clear-btn");
+      if (clearBtn) {
+        clearBtn.addEventListener("click", () => this.clearHistory());
+      }
+
+      // Close on Esc key
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && this.isOpen) {
+          this.closePanel();
+        }
+      });
+
+      // Send on button click
+      this.sendBtn.addEventListener("click", () => this.sendMessage());
+
+      // Send on Enter key (without shift)
+      this.inputField.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          this.sendMessage();
+        }
+      });
+
+      // Listen for tab switching on page
+      const navTabs = document.querySelectorAll(".nav-tabs .tab-btn");
+      navTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          setTimeout(() => this.detectActiveTab(), 60);
+        });
+      });
+    }
+
+    togglePanel() {
+      if (this.isOpen) {
+        this.closePanel();
+      } else {
+        this.openPanel();
+      }
+    }
+
+    openPanel() {
+      this.isOpen = true;
+      this.panel.classList.remove("cw-closed");
+      this.panel.classList.add("cw-open");
+      this.launcher.classList.add("cw-active");
+
+      // Reset unread badge
+      this.unreadCount = 0;
+      this.updateUnreadBadge();
+
+      // Scroll messages to bottom and focus input
+      this.scrollToBottom();
+      setTimeout(() => {
+        if (window.innerWidth > 520) {
+          this.inputField.focus();
+        }
+      }, 150);
+    }
+
+    closePanel() {
+      this.isOpen = false;
+      this.panel.classList.remove("cw-open");
+      this.panel.classList.add("cw-closed");
+      this.launcher.classList.remove("cw-active");
+    }
+
+    updateUnreadBadge() {
+      if (this.unreadCount > 0) {
+        this.unreadBadge.textContent = this.unreadCount > 9 ? "9+" : String(this.unreadCount);
+        this.unreadBadge.classList.add("cw-visible");
+      } else {
+        this.unreadBadge.textContent = "0";
+        this.unreadBadge.classList.remove("cw-visible");
+      }
+    }
+
+    detectActiveTab() {
+      const activeTabBtn = document.querySelector(".nav-tabs .tab-btn.active");
+      if (activeTabBtn) {
+        const tabId = activeTabBtn.getAttribute("data-tab") || "tab-monitor";
+        if (this.activeTabId !== tabId) {
+          this.activeTabId = tabId;
+          this.updateContextBar();
+          this.renderChips();
+        }
+      }
+    }
+
+    startTelemetrySync() {
+      const updateTelemetry = () => {
+        this.updateContextBar();
+      };
+      updateTelemetry();
+      setInterval(updateTelemetry, 1500);
+    }
+
+    updateContextBar() {
+      if (this.contextTabEl) {
+        const name = TAB_NAMES[this.activeTabId] || "Tab: Lâm Sàng";
+        this.contextTabEl.textContent = name;
+      }
+
+      if (this.contextTelemetryEl) {
+        let valStr = "+0.00";
+        let arouStr = "+0.00";
+        let exhaust = 1;
+
+        if (window.clinicalStation && window.clinicalStation.currentBiometrics) {
+          const b = window.clinicalStation.currentBiometrics;
+          const v = Number(b.valence ?? 0.0);
+          const a = Number(b.arousal ?? 0.0);
+          valStr = (v >= 0 ? "+" : "") + v.toFixed(2);
+          arouStr = (a >= 0 ? "+" : "") + a.toFixed(2);
+          exhaust = b.exhaustion_level ?? b.mental_exhaustion_level ?? 1;
+        }
+
+        this.contextTelemetryEl.textContent = `VAL: ${valStr} | AROU: ${arouStr} | CẤP ${exhaust}/5`;
+      }
+    }
+
+    renderChips() {
+      if (!this.chipsContainer) return;
+      const chips = TAB_CHIPS[this.activeTabId] || TAB_CHIPS["tab-monitor"];
+
+      this.chipsContainer.innerHTML = "";
+      chips.forEach((c) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cw-chip" + (c.teach ? " cw-chip-teach" : "");
+        btn.textContent = c.label;
+        btn.addEventListener("click", () => {
+          this.inputField.value = c.query;
+          this.inputField.focus();
+          if (!c.teach) {
+            this.sendMessage();
+          }
+        });
+        this.chipsContainer.appendChild(btn);
+      });
+    }
+
+    renderMessages() {
+      if (!this.messagesContainer) return;
+      this.messagesContainer.innerHTML = "";
+
+      this.messages.forEach((msg) => {
+        this.appendMessageElement(msg, false);
+      });
+      this.scrollToBottom();
+    }
+
+    appendMessageElement(msg, autoScroll = true) {
+      const isUser = msg.sender === "user";
+      const wrap = document.createElement("div");
+      wrap.className = "cw-msg " + (isUser ? "cw-msg-user" : "cw-msg-bot");
+
+      const bubble = document.createElement("div");
+      bubble.className = isUser ? "cw-bubble-user" : "cw-bubble-bot";
+
+      // Formatted safe text (preserves line breaks and typographic titles without innerHTML injection)
+      if (isUser) {
+        bubble.textContent = msg.text;
+      } else {
+        this.formatBotMessageContent(bubble, msg.text);
+      }
+
+      const timeEl = document.createElement("span");
+      timeEl.className = "cw-msg-time";
+      timeEl.textContent = msg.time || formatCurrentTime();
+
+      wrap.appendChild(bubble);
+      wrap.appendChild(timeEl);
+      this.messagesContainer.appendChild(wrap);
+
+      if (autoScroll) {
+        this.scrollToBottom();
+      }
+    }
+
+    formatBotMessageContent(bubbleEl, text) {
+      bubbleEl.textContent = "";
+      const lines = String(text || "").split("\n");
+
+      lines.forEach((line, index) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]") && trimmed.length < 90) {
+          // Monospace section header tag
+          const tag = document.createElement("span");
+          tag.className = "cw-bot-header";
+          tag.textContent = trimmed;
+          bubbleEl.appendChild(tag);
+        } else {
+          const textNode = document.createTextNode(line);
+          bubbleEl.appendChild(textNode);
+        }
+        if (index < lines.length - 1) {
+          bubbleEl.appendChild(document.createElement("br"));
+        }
+      });
+    }
+
+    showTypingIndicator() {
+      const existing = document.getElementById("cw-typing-indicator");
+      if (existing) return existing;
+
+      const typing = document.createElement("div");
+      typing.className = "cw-typing";
+      typing.id = "cw-typing-indicator";
+      typing.innerHTML = `
+        <span class="cw-typing-dot"></span>
+        <span class="cw-typing-dot"></span>
+        <span class="cw-typing-dot"></span>
+        <span class="cw-typing-text">Bác sĩ đang phân tích...</span>
+      `;
+      this.messagesContainer.appendChild(typing);
+      this.scrollToBottom();
+      return typing;
+    }
+
+    hideTypingIndicator() {
+      const el = document.getElementById("cw-typing-indicator");
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    }
+
+    scrollToBottom() {
+      if (this.messagesContainer) {
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+      }
+    }
+
+    clearHistory() {
+      const confirmed = window.confirm("Xác nhận xóa toàn bộ lịch sử hội thoại hiện tại?");
+      if (!confirmed) return;
+
+      this.messages = [Object.assign({}, DEFAULT_WELCOME_MSG)];
+      this.saveHistory();
+      this.renderMessages();
+    }
+
+    async sendMessage() {
+      if (this.isSending) return;
+      const text = this.inputField.value.trim();
+      if (!text) return;
+
+      this.isSending = true;
+      this.inputField.value = "";
+      this.sendBtn.disabled = true;
+
+      // 1. Add user message
+      const userMsg = {
+        sender: "user",
+        text: text,
+        time: formatCurrentTime()
+      };
+      this.messages.push(userMsg);
+      this.saveHistory();
+      this.appendMessageElement(userMsg, true);
+
+      // 2. Show typing indicator
+      this.showTypingIndicator();
+
+      // 3. Assemble biometric context safely from clinicalStation
+      let bioContext = {
+        emotion: "NEUTRAL / CALM",
+        valence: 0.05,
+        arousal: 0.02,
+        exhaustion_level: 1,
+        incongruence_detected: false,
+        posture_warning: false,
+        active_tab: this.activeTabId
+      };
+
+      if (window.clinicalStation && window.clinicalStation.currentBiometrics) {
+        const b = window.clinicalStation.currentBiometrics;
+        bioContext.emotion = b.emotion || "NEUTRAL / CALM";
+        bioContext.valence = Number(b.valence ?? 0.05);
+        bioContext.arousal = Number(b.arousal ?? 0.02);
+        bioContext.exhaustion_level = Number(b.mental_exhaustion_level ?? b.exhaustion_level ?? 1);
+        bioContext.incongruence_detected = Boolean(b.incongruence_detected);
+        bioContext.posture_warning = Boolean(b.posture_warning);
+      }
+
+      // 4. Send request to /api/cbt/chat
+      try {
+        const response = await fetch("/api/cbt/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            biometric_context: bioContext
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Máy chủ trả về mã HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        this.hideTypingIndicator();
+
+        const botReply = data && data.response
+          ? data.response
+          : "Hệ thống đã tiếp nhận thông tin nhưng chưa có phản hồi phù hợp.";
+
+        const botMsg = {
+          sender: "bot",
+          text: botReply,
+          time: formatCurrentTime()
+        };
+
+        this.messages.push(botMsg);
+        this.saveHistory();
+        this.appendMessageElement(botMsg, true);
+
+        // If widget is closed, increase unread count
+        if (!this.isOpen) {
+          this.unreadCount += 1;
+          this.updateUnreadBadge();
+        }
+      } catch (err) {
+        console.error("[CHAT_WIDGET] Network / API error:", err);
+        this.hideTypingIndicator();
+
+        const errorMsg = {
+          sender: "bot",
+          text: "[CẢNH BÁO KẾT NỐI HỆ THỐNG]\n" +
+            "Không thể kết nối đến dịch vụ bác sĩ CBT tại máy chủ cục bộ (127.0.0.1:8000).\n" +
+            "Vui lòng kiểm tra lại tiến trình backend FastAPI và thử lại.",
+          time: formatCurrentTime()
+        };
+
+        this.messages.push(errorMsg);
+        this.saveHistory();
+        this.appendMessageElement(errorMsg, true);
+      } finally {
+        this.isSending = false;
+        this.sendBtn.disabled = false;
+        this.inputField.focus();
+      }
+    }
+  }
+
+  // Initialize once DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      window.cbtChatWidget = new FloatingChatWidget();
+      window.cbtChatWidget.init();
+    });
+  } else {
+    window.cbtChatWidget = new FloatingChatWidget();
+    window.cbtChatWidget.init();
+  }
+})();

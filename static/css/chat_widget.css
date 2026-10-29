@@ -1,0 +1,1023 @@
+/* ==========================================================================
+   NEURO STATION - FLOATING CBT CLINICAL CHAT BUBBLE WIDGET
+   Design System: Apple Glassmorphism Clinical Edition (Zero Emojis)
+   All classes scoped with prefix "cw-" to prevent CSS collisions.
+   ========================================================================== */
+
+/* 1. Launcher Floating Button */
+.cw-launcher {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  color: #FFFFFF;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.40), 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9990;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cw-launcher:hover {
+  transform: scale(1.06);
+  box-shadow: 0 10px 28px rgba(2, 132, 199, 0.52), 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.cw-launcher:active {
+  transform: scale(0.96);
+}
+
+/* Subtle Animated Pulse Ring */
+.cw-launcher::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(2, 132, 199, 0.45);
+  animation: cwPulseRing 2.6s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes cwPulseRing {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+.cw-launcher-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.cw-launcher.cw-active .cw-icon-chat {
+  display: none;
+}
+
+.cw-launcher.cw-active .cw-icon-close {
+  display: flex;
+  transform: rotate(90deg);
+}
+
+.cw-launcher:not(.cw-active) .cw-icon-close {
+  display: none;
+}
+
+.cw-launcher:not(.cw-active) .cw-icon-chat {
+  display: flex;
+}
+
+/* Unread Badge */
+.cw-unread-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #DC2626;
+  color: #FFFFFF;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+  display: none;
+}
+
+.cw-unread-badge.cw-visible {
+  display: block;
+  animation: cwBadgePop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cwBadgePop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 2. Floating Chat Panel */
+.cw-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 96px;
+  width: 380px;
+  height: 560px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 116px);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 16px 48px -4px rgba(15, 23, 42, 0.20), 0 4px 16px -2px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9991;
+  box-sizing: border-box;
+  font-family: var(--font-sans, 'Inter', -apple-system, sans-serif);
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.24s;
+  will-change: transform, opacity;
+}
+
+.cw-panel.cw-closed {
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.cw-panel.cw-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  visibility: visible;
+}
+
+/* Expanded State: 520px x 720px */
+.cw-panel.cw-expanded {
+  width: 520px;
+  height: 720px;
+}
+
+/* 3. Panel Header */
+.cw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  user-select: none;
+}
+
+.cw-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cw-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #0F172A;
+  color: #38BDF8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+  flex-shrink: 0;
+}
+
+.cw-header-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cw-header-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.cw-header-subtitle {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.60rem;
+  font-weight: 600;
+  color: #0284C7;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cw-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  display: inline-block;
+}
+
+.cw-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cw-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.cw-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #0F172A;
+}
+
+/* 4. Context Bar (Active Tab + Mini Telemetry Badges) */
+.cw-context-bar {
+  padding: 6px 14px;
+  background: rgba(241, 245, 249, 0.94);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.63rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  gap: 8px;
+}
+
+.cw-context-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: #0369A1;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.cw-mini-telemetry {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.cw-telemetry-badge {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #E2E8F0;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.58rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cw-telemetry-badge.cw-stat-green {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.30);
+}
+
+.cw-telemetry-badge.cw-stat-amber {
+  background: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+  border-color: rgba(245, 158, 11, 0.30);
+}
+
+.cw-telemetry-badge.cw-stat-red {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  border-color: rgba(239, 68, 68, 0.30);
+}
+
+/* 5. Messages Container */
+.cw-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+  box-sizing: border-box;
+}
+
+.cw-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cw-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cw-messages::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 4px;
+}
+
+.cw-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+.cw-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 88%;
+  word-break: break-word;
+  animation: cwMsgSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cwMsgSlideIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.cw-msg-user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.cw-bubble-user {
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  color: #FFFFFF;
+  padding: 9px 13px;
+  border-radius: 12px 12px 2px 12px;
+  font-size: 0.80rem;
+  line-height: 1.45;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+  white-space: pre-wrap;
+}
+
+/* Bot Message with Avatar on Left */
+.cw-msg-bot {
+  align-self: flex-start;
+  align-items: flex-start;
+  max-width: 94%;
+}
+
+.cw-msg-bot-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.cw-bot-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  color: #38BDF8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cw-msg-bot-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cw-bubble-bot {
+  background: #FFFFFF;
+  color: #0F172A;
+  padding: 10px 13px;
+  border-radius: 12px 12px 12px 2px;
+  font-size: 0.80rem;
+  line-height: 1.5;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  word-break: break-word;
+  transition: border-color 0.15s ease;
+  user-select: text;
+}
+
+.cw-bubble-bot:hover {
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+/* Structured Section Blocks inside bot message */
+.cw-section-block {
+  margin: 6px 0;
+  padding: 6px 10px;
+  border-radius: 0 6px 6px 0;
+  background: rgba(248, 250, 252, 0.85);
+  border-left: 3px solid #94A3B8;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cw-section-tag {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-bottom: 2px;
+}
+
+.cw-sec-diagnosis {
+  border-left-color: #0284C7;
+  background: rgba(2, 132, 199, 0.04);
+}
+.cw-sec-diagnosis .cw-section-tag {
+  color: #0284C7;
+}
+
+.cw-sec-socratic {
+  border-left-color: #7C3AED;
+  background: rgba(124, 58, 237, 0.04);
+}
+.cw-sec-socratic .cw-section-tag {
+  color: #7C3AED;
+}
+
+.cw-sec-protocol {
+  border-left-color: #059669;
+  background: rgba(5, 150, 105, 0.04);
+}
+.cw-sec-protocol .cw-section-tag {
+  color: #059669;
+}
+
+.cw-sec-warning {
+  border-left-color: #D97706;
+  background: rgba(217, 119, 6, 0.05);
+}
+.cw-sec-warning .cw-section-tag {
+  color: #D97706;
+}
+
+.cw-sec-posture {
+  border-left-color: #DC2626;
+  background: rgba(220, 38, 38, 0.05);
+}
+.cw-sec-posture .cw-section-tag {
+  color: #DC2626;
+}
+
+/* Bot Message Meta Row: HH:MM, Copy Button */
+.cw-msg-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 0 2px;
+}
+
+.cw-msg-time {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.58rem;
+  color: #94A3B8;
+}
+
+.cw-copy-btn {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cw-copy-btn:hover {
+  background: #F1F5F9;
+  color: #0284C7;
+  border-color: #0284C7;
+}
+
+.cw-copy-btn.cw-copied {
+  color: #059669;
+  border-color: #059669;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+/* Quick Follow-up Chips under bot message */
+.cw-quick-reply-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.cw-quick-reply-chip {
+  font-size: 0.65rem;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-weight: 500;
+  padding: 3px 8px;
+  background: #FFFFFF;
+  border: 1px solid rgba(2, 132, 199, 0.28);
+  border-radius: 10px;
+  color: #0369A1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.cw-quick-reply-chip:hover {
+  background: #0284C7;
+  color: #FFFFFF;
+  border-color: #0284C7;
+  transform: translateY(-1px);
+}
+
+/* Typing Indicator */
+.cw-typing {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 14px;
+  background: #FFFFFF;
+  border-radius: 12px 12px 12px 2px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.cw-typing-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #0284C7;
+  animation: cwTypingBounce 1.2s infinite ease-in-out;
+}
+
+.cw-typing-dot:nth-child(2) { animation-delay: 0.18s; }
+.cw-typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+.cw-typing-text {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.66rem;
+  color: #64748B;
+  margin-left: 4px;
+}
+
+@keyframes cwTypingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* 6. Dynamic Suggestion Chips Row */
+.cw-chips {
+  display: flex;
+  gap: 6px;
+  padding: 7px 12px;
+  overflow-x: auto;
+  background: rgba(248, 250, 252, 0.90);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.cw-chips::-webkit-scrollbar {
+  height: 0px;
+}
+
+.cw-chip {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-weight: 500;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 12px;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  outline: none;
+  user-select: none;
+}
+
+.cw-chip:hover {
+  background: #F1F5F9;
+  border-color: #0284C7;
+  color: #0284C7;
+}
+
+.cw-chip-teach {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(2, 132, 199, 0.32);
+  color: #0284C7;
+  font-weight: 600;
+}
+
+.cw-chip-teach:hover {
+  background: rgba(2, 132, 199, 0.16);
+}
+
+/* 7. Input Row */
+.cw-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.cw-input {
+  flex: 1;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  background: #F8FAFC;
+  color: #0F172A;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cw-input::placeholder {
+  color: #94A3B8;
+  font-size: 0.72rem;
+}
+
+.cw-input:focus {
+  border-color: #0284C7;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.14);
+}
+
+.cw-send-btn {
+  border: none;
+  background: #0284C7;
+  color: #FFFFFF;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.cw-send-btn:hover {
+  background: #0369A1;
+}
+
+.cw-send-btn:active {
+  transform: scale(0.97);
+}
+
+.cw-send-btn:disabled {
+  background: #94A3B8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 8. Fullscreen on Mobile / Small screens (<=520px) */
+@media (max-width: 520px) {
+  .cw-panel {
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+
+  .cw-launcher {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+/* ==========================================================================
+   9. Proactive Nudge Bubble Tooltip
+   ========================================================================== */
+.cw-nudge-bubble {
+  position: fixed;
+  right: 94px;
+  bottom: 26px;
+  max-width: 290px;
+  background: #0F172A;
+  color: #F8FAFC;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  z-index: 9989;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  animation: cwNudgeSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  user-select: none;
+}
+
+.cw-nudge-bubble::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  bottom: 18px;
+  width: 12px;
+  height: 12px;
+  background: #0F172A;
+  transform: rotate(45deg);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.cw-nudge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: #38BDF8;
+  letter-spacing: 0.03em;
+}
+
+.cw-nudge-close {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.cw-nudge-close:hover {
+  color: #FFFFFF;
+}
+
+.cw-nudge-body {
+  font-size: 0.73rem;
+  color: #E2E8F0;
+  line-height: 1.4;
+}
+
+@keyframes cwNudgeSlide {
+  0% { opacity: 0; transform: translateX(12px) scale(0.95); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.cw-nudge-hiding {
+  opacity: 0;
+  transform: translateX(12px) scale(0.95);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   10. Tab 1: Trợ Lý AI Đồng Hành (CBT Companion Card)
+   ========================================================================== */
+.cw-companion-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 380px;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.72));
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-lg, 14px);
+  padding: 1.15rem;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.cw-companion-card:hover {
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  border-color: rgba(2, 132, 199, 0.25);
+}
+
+.cw-companion-snapshot {
+  background: rgba(248, 250, 252, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+}
+
+.cw-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem 0.85rem;
+}
+
+.cw-snapshot-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cw-snapshot-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.cw-snapshot-val {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0F172A;
+  transition: color 0.2s ease;
+}
+
+.cw-val-normal {
+  color: #059669 !important;
+}
+
+.cw-val-warning {
+  color: #D97706 !important;
+}
+
+.cw-val-alert {
+  color: #DC2626 !important;
+}
+
+.cw-companion-insight-box {
+  background: rgba(2, 132, 199, 0.04);
+  border: 1px solid rgba(2, 132, 199, 0.16);
+  border-left: 3px solid #0284C7;
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cw-insight-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cw-insight-badge {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: #0284C7;
+  letter-spacing: 0.03em;
+}
+
+.cw-insight-text {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #334155;
+  transition: color 0.2s ease;
+}
+
+.cw-companion-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cw-topics-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.04em;
+}
+
+.cw-topics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.cw-topic-btn {
+  padding: 6px 10px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 6px;
+  color: #334155;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cw-topic-btn:hover {
+  background: #F0F9FF;
+  border-color: #0284C7;
+  color: #0284C7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12);
+}
+
+.cw-topic-btn:active {
+  transform: translateY(0);
+}
+
+.cw-open-cbt-btn {
+  margin-top: auto;
+  padding: 0.7rem 1.1rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  color: #FFFFFF;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.cw-open-cbt-btn:hover {
+  background: linear-gradient(135deg, #0369A1 0%, #075985 100%);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.40);
+  transform: translateY(-1px);
+}
+
+.cw-open-cbt-btn:active {
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   11. Accessibility & Prefers-Reduced-Motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .cw-launcher::before {
+    animation: none !important;
+  }
+  .cw-panel, .cw-launcher, .cw-msg, .cw-nudge-bubble, .cw-unread-badge {
+    transition: none !important;
+    animation: none !important;
+  }
+  .cw-typing-dot {
+    animation: none !important;
+    opacity: 0.7 !important;
+  }
+}
