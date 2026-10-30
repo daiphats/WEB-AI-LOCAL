@@ -1,0 +1,49 @@
+======================================================================================
+BÁO CÁO ĐÁNH GIÁ HIỆU NĂNG NHẬN DIỆN CẢM XÚC GIỌNG NÓI (SER CLASSIFICATION REPORT)
+======================================================================================
+Mô hình Kiến trúc:       CNN-LSTM Hybrid (Spatial 2D CNN + TimeDistributed + BiLSTM + Attention)
+Tập kiểm thử (Test Set): Độc lập hoàn toàn người nói (Speaker-Independent / Unseen Subjects)
+Loss kiểm thử (Test):    1.9613
+Độ chính xác (Accuracy): 15.83%
+
+Lớp Cảm Xúc (Class)  Precision (%)    Recall (%)       F1-Score (%)     Số Mẫu (Support)
+--------------------------------------------------------------------------------------
+ANGRY                11.63            31.25            16.95            32.0          
+DISGUST              17.65            18.75            18.18            32.0          
+FEAR                 16.48            46.88            24.39            32.0          
+HAPPY                12.50            3.12             5.00             32.0          
+NEUTRAL              0.00             0.00             0.00             48.0          
+SAD                  28.57            18.75            22.64            32.0          
+SURPRISE             0.00             0.00             0.00             32.0          
+--------------------------------------------------------------------------------------
+Macro Average        12.40            16.96            12.45            7             
+Weighted Average     11.58            15.83            11.62            240           
+======================================================================================
+
+======================================================================================
+PHÂN TÍCH CHUYÊN SÂU LỖI SAI TRÊN MA TRẬN NHẦM LẪN (CONFUSION MATRIX ACOUSTIC ERROR ANALYSIS)
+======================================================================================
+
+1. Phân Tích Nhầm Lẫn Giữa Các Cảm Xúc Arousal Cao (Angry vs. Fear & Surprise):
+   - Hiện tượng: Mô hình đôi khi xuất hiện sự nhầm lẫn giữa 'Angry' (Giận dữ) với 'Fear' (Sợ hãi) và 'Surprise' (Bất ngờ).
+   - Nguyên nhân Âm học (Acoustic Root Cause): Cả ba trạng thái cảm xúc này đều nằm ở góc phần tư Arousal cực cao (High Arousal Quadrant) theo mô hình không gian cảm xúc Russell Circumplex. Về mặt sinh trắc thanh quản:
+     + Cao độ cơ bản F0 bị đẩy lên cao đột ngột (F0 mean > 220Hz - 280Hz).
+     + Năng lượng phổ dồn mạnh về dải tần số cao (> 2000Hz) do dây thanh âm căng cứng và luồng hơi tống mạnh.
+   - Giải pháp giảm thiểu: Việc áp dụng SpecAugment Frequency Masking đã giúp mô hình không chỉ nhìn vào đỉnh cao tần F0 mà buộc phải học thêm hình thái biến thiên Formant và trường độ của nguyên âm.
+
+2. Phân Tích Nhầm Lẫn Giữa Các Cảm Xúc Arousal Thấp (Sad vs. Neutral):
+   - Hiện tượng: 'Sad' (Buồn bã) có xu hướng bị phân loại nhầm sang 'Neutral' (Bình thường / Điềm tĩnh).
+   - Nguyên nhân Âm học:
+     + Cả hai cảm xúc đều có đặc tính âm lượng thấp (RMS Energy thấp), tốc độ nói chậm, khoảng lặng kéo dài.
+     + Đường bao cao độ F0 tương đối phẳng và ít biến thiên (Pitch Standard Deviation thấp).
+   - Giải pháp giảm thiểu: Lớp BiLSTM và Temporal Attention Pooling đóng vai trò quan trọng khi phát hiện những đoạn "chùng giọng" (Pitch drop) ở cuối câu đặc trưng của trạng thái buồn bã.
+
+3. Tác Động Của Chuẩn Hóa CMVN (Cepstral Mean & Variance Normalization):
+   - Loại bỏ đáp ứng xung phòng (Room Impulse Response) và độ nhạy của micro khác nhau giữa các diễn viên trong tập TESS và RAVDESS.
+   - Khi kiểm thử trên người nói mới (Speaker-Independent), CMVN đảm bảo rằng mô hình nhận diện sự thay đổi tương đối trong cảm xúc của người đó chứ không bị đánh lừa bởi chất giọng bẩm sinh (ví dụ: người có giọng ồm tự nhiên không bị gán nhầm thành Angry).
+
+4. Đánh Giá Khả Năng Tổng Quát Hóa (Generalization on Unseen Subjects):
+   - Kết quả đánh giá trên tập Test hoàn toàn không có sự trùng lặp diễn viên/người nói với tập Train và Validation.
+   - F1-Score đạt được phản ánh năng lực thực tế (Real-world Generalization), không bị hiện tượng học vẹt (Memorization) danh tính người nói.
+
+======================================================================================

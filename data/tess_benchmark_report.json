@@ -1,0 +1,180 @@
+{
+  "timestamp": "2026-10-27 11:29:07",
+  "dataset": "Toronto Emotional Speech Set (TESS)",
+  "dataset_total_samples": 2800,
+  "train_samples": 2240,
+  "test_samples": 560,
+  "classes": [
+    "angry",
+    "disgust",
+    "fear",
+    "happy",
+    "neutral",
+    "sad",
+    "surprise"
+  ],
+  "overall_accuracy": 100.0,
+  "macro_precision": 100.0,
+  "macro_recall": 100.0,
+  "macro_f1": 100.0,
+  "confusion_matrix": [
+    [
+      76,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      85,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      84,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      93,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      70,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      89,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      63
+    ]
+  ],
+  "class_metrics": {
+    "angry": {
+      "class_id": 0,
+      "name": "ANGRY",
+      "tp": 76,
+      "fp": 0,
+      "fn": 0,
+      "tn": 484,
+      "support": 76,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    },
+    "disgust": {
+      "class_id": 1,
+      "name": "DISGUST",
+      "tp": 85,
+      "fp": 0,
+      "fn": 0,
+      "tn": 475,
+      "support": 85,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    },
+    "fear": {
+      "class_id": 2,
+      "name": "FEAR",
+      "tp": 84,
+      "fp": 0,
+      "fn": 0,
+      "tn": 476,
+      "support": 84,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    },
+    "happy": {
+      "class_id": 3,
+      "name": "HAPPY",
+      "tp": 93,
+      "fp": 0,
+      "fn": 0,
+      "tn": 467,
+      "support": 93,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    },
+    "neutral": {
+      "class_id": 4,
+      "name": "NEUTRAL",
+      "tp": 70,
+      "fp": 0,
+      "fn": 0,
+      "tn": 490,
+      "support": 70,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    },
+    "sad": {
+      "class_id": 5,
+      "name": "SAD",
+      "tp": 89,
+      "fp": 0,
+      "fn": 0,
+      "tn": 471,
+      "support": 89,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    },
+    "surprise": {
+      "class_id": 6,
+      "name": "SURPRISE",
+      "tp": 63,
+      "fp": 0,
+      "fn": 0,
+      "tn": 497,
+      "support": 63,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    }
+  },
+  "technical_specs": {
+    "features_extracted": 180,
+    "mfcc_dim": 40,
+    "chroma_dim": 12,
+    "mel_spectrogram_dim": 128,
+    "inference_latency_ms": 70,
+    "sample_rate_khz": 24.4,
+    "model_architecture": "MLP (180 -> 256 -> 128 -> 64 -> 7) with BatchNorm & Dropout"
+  }
+}

@@ -14,22 +14,18 @@ venv/
 env/
 ENV/
 
-# Model checkpoints & large files
-checkpoints/
-*.pt
-*.pth
-*.ckpt
-*.h5
-*.pkl
-*.bin
-*.onnx
+# Large raw datasets & precomputed tensors (>100MB)
+# Note: Raw datasets can be shared via Cloud Drive / Hugging Face for retraining
+data/RAVDESS/
+data/TESS/
+data/ser_mel128_cmvn_cache.pt
+*.tar
+*.tar.gz
+*.zip
 
-# Data directories (đã mở để push data)
-!data/
-!data/**
-
-# Scratch / temp
+# Scratch / temp / backups
 scratch/
+ser_backup_v1/
 
 # IDE
 .vscode/
@@ -46,7 +42,5 @@ desktop.ini
 *.log
 logs/
 
-# Node modules (nếu có)
+# Node modules
 node_modules/
-data/
-ser_backup_v1/
